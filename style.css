@@ -1,24 +1,26 @@
 :root {
-  --bg-1: #1e293b;
-  --bg-2: #0f172a;
+  --bg-1: #ffffff;
+  --bg-2: #f1f5f9;
   --bg-3: #020617;
-  --ink: #f1f5f9;
-  --ink-soft: #94a3b8;
-  --paper: #1e293b;
-  --paper-alt: #0f172a;
-  --line: #334155;
-  --border-strong: #475569;
+  --ink: #0f172a;
+  --ink-soft: #64748b;
+  --ink-on-dark: #f1f5f9;
+  --paper: #ffffff;
+  --paper-alt: #f1f5f9;
+  --line: #cbd5e1;
+  --border-strong: #94a3b8;
+  --line-dark: #334155;
   --accent: #f59e0b;
   --accent-light: #fbbf24;
   --accent-dark: #b45309;
-  --accent-2: #38bdf8;
+  --accent-2: #0ea5e9;
   --ok: #10b981;
-  --ok-bg: rgba(16, 185, 129, 0.16);
-  --warn: #fb7185;
-  --warn-bg: rgba(244, 63, 94, 0.16);
+  --ok-bg: rgba(16, 185, 129, 0.14);
+  --warn: #e11d48;
+  --warn-bg: rgba(225, 29, 72, 0.12);
   --pending: #f59e0b;
-  --pending-bg: rgba(245, 158, 11, 0.16);
-  --star: #fbbf24;
+  --pending-bg: rgba(245, 158, 11, 0.14);
+  --star: #d97706;
   font-size: 20px;
 }
 
@@ -28,7 +30,7 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: radial-gradient(ellipse at top, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%);
+  background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 60%, #e2e8f0 100%);
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-user-select: none;
@@ -47,13 +49,9 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title,
 }
 
 /* Die Noten-/Pausen-SVGs (Palette, platzierte Noten, Level-Kacheln) sind
-   fest dunkel gefüllt (früher: dunkel auf hellen Karten). Auf den jetzt
-   dunklen Karten per Filter invertiert statt die Icons selbst anzufassen -
-   bleibt reine Optik, keine Inhalts-/Logikänderung. */
-.note-card .icon svg, .placed-note .icon svg, .insert-preview .icon svg,
-.eighth-half .icon svg, .level-card-icon svg {
-  filter: invert(1) brightness(1.9);
-}
+   fest dunkel gefüllt (#1a1a1a) - auf dem jetzt hellen Kartengrund von
+   Natur aus gut lesbar, kein Filtertrick mehr nötig (anders als in der
+   ersten, dunklen Testversion). */
 
 /* ---------- Toolbar ---------- */
 
@@ -63,13 +61,13 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title,
   gap: 16px;
   padding: 12px 24px;
   background: var(--bg-3);
-  color: var(--ink);
+  color: var(--ink-on-dark);
   position: sticky;
   top: 0;
   z-index: 20;
   flex-wrap: wrap;
-  border-bottom: 4px solid var(--line);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
+  border-bottom: 4px solid var(--line-dark);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.35);
 }
 
 .toolbar h1 {
@@ -89,33 +87,26 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title,
   flex-wrap: wrap;
 }
 
+/* Dunkler "Chip"-Knopf, bewusst unabhängig davon, ob er gerade in der
+   dunklen Toolbar oder unten über dem hellen Seiteninhalt sitzt - so
+   bleibt der Amber-auf-Dunkel-Kontrast überall gleich gut lesbar (Amber
+   auf Weiß wäre zu blass). */
 .btn {
   font-size: 1.05rem;
   font-weight: 700;
   padding: 10px 18px;
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-dark);
   border-radius: 12px;
-  background: var(--paper);
+  background: var(--bg-3);
   color: var(--accent-light);
   cursor: pointer;
   min-height: 44px;
   transition: transform 0.12s ease, background 0.15s;
 }
-.btn:hover { background: var(--border-strong); }
+.btn:hover { background: #0f172a; }
 .btn:active { transform: scale(0.96); }
 
-.btn-secondary { background: var(--paper); }
-
-/* Im Einstellungen-Flyout sitzt der Knopf auf dunklem Kartengrund statt auf
-   der Toolbar - dort etwas kräftigerer Amber-Akzent. */
-.bottom-bar .btn-secondary,
-.settings-panel .btn-secondary {
-  background: rgba(245, 158, 11, 0.14);
-  color: var(--accent-light);
-  border-color: rgba(245, 158, 11, 0.35);
-}
-.bottom-bar .btn-secondary:hover,
-.settings-panel .btn-secondary:hover { background: rgba(245, 158, 11, 0.26); }
+.btn-secondary { background: var(--bg-3); }
 
 /* ---------- Level-Auswahl ---------- */
 
@@ -148,20 +139,20 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title,
   border: 2px solid var(--line);
   border-top: 6px solid var(--card-accent);
   border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15);
   cursor: pointer;
   text-align: left;
   font-family: inherit;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.level-card:nth-child(1) { --card-accent: #f59e0b; }
-.level-card:nth-child(2) { --card-accent: #38bdf8; }
-.level-card:nth-child(3) { --card-accent: #2dd4bf; }
-.level-card:nth-child(4) { --card-accent: #fb7185; }
-.level-card:nth-child(5) { --card-accent: #a78bfa; }
-.level-card:nth-child(6) { --card-accent: #34d399; }
+.level-card:nth-child(1) { --card-accent: #d97706; }
+.level-card:nth-child(2) { --card-accent: #0284c7; }
+.level-card:nth-child(3) { --card-accent: #0d9488; }
+.level-card:nth-child(4) { --card-accent: #e11d48; }
+.level-card:nth-child(5) { --card-accent: #7c3aed; }
+.level-card:nth-child(6) { --card-accent: #059669; }
 
-.level-card:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(0, 0, 0, 0.6); }
+.level-card:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(15, 23, 42, 0.22); }
 .level-card:active { transform: translateY(-1px) scale(0.99); }
 .level-card.is-done { background: var(--ok-bg); }
 
@@ -229,7 +220,7 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title,
 
 .round-dot.is-done {
   color: var(--star);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
 }
 
 /* ---------- Ziel-Rhythmus anhören ---------- */
@@ -316,7 +307,7 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title,
 .count-in-number {
   font-size: 6rem;
   font-weight: 700;
-  color: var(--accent-light);
+  color: var(--accent-dark);
   opacity: 0.9;
   line-height: 1;
 }
@@ -360,7 +351,7 @@ main {
   border-radius: 20px;
   padding: 12px 16px 16px;
   overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15);
   transition: border-color 0.15s, background 0.15s;
 }
 
@@ -384,7 +375,7 @@ main {
 .measure-title {
   font-weight: 700;
   font-size: 1.05rem;
-  color: var(--accent-light);
+  color: var(--accent-dark);
 }
 
 .measure-clear {
@@ -438,7 +429,7 @@ main {
   margin-left: -2px;
   background: var(--accent-2);
   border-radius: 2px;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.6);
   pointer-events: none;
   z-index: 6;
   display: none;
@@ -462,12 +453,12 @@ main {
 .measure-warning[hidden] { display: none; }
 .measure-warning span {
   background: var(--warn);
-  color: var(--bg-3);
+  color: #ffffff;
   padding: 8px 18px;
   border-radius: 999px;
   font-weight: 700;
   font-size: 1rem;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.3);
 }
 
 .beat-labels {
@@ -530,7 +521,7 @@ main {
   justify-content: center;
   z-index: 2;
 }
-.placed-note .delete-btn:hover { background: var(--warn); color: var(--bg-3); border-color: var(--warn); }
+.placed-note .delete-btn:hover { background: var(--warn); color: #ffffff; border-color: var(--warn); }
 
 .placed-note-pair {
   position: relative;
@@ -576,7 +567,7 @@ main {
   justify-content: center;
   z-index: 2;
 }
-.eighth-half .delete-btn:hover { background: var(--warn); color: var(--bg-3); border-color: var(--warn); }
+.eighth-half .delete-btn:hover { background: var(--warn); color: #ffffff; border-color: var(--warn); }
 .eighth-half .delete-btn-left { right: auto; left: -10px; }
 
 .beam-bar {
@@ -607,7 +598,7 @@ main {
 }
 .measure.preview-overfull .insert-preview {
   border-color: var(--warn);
-  background: rgba(251, 113, 133, 0.16);
+  background: rgba(225, 29, 72, 0.12);
 }
 .measure.preview-overfull .slot-track {
   -webkit-mask-image: linear-gradient(to right, black 0, black 92%, transparent 100%);
@@ -712,7 +703,7 @@ main {
   border-radius: 12px;
   cursor: grab;
   touch-action: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
   transition: transform 0.12s ease;
 }
 .note-card:active { transform: scale(0.96); cursor: grabbing; }
@@ -752,12 +743,12 @@ main {
 .feedback[hidden] { display: none; }
 .feedback-correct {
   background: var(--ok-bg);
-  color: #6ee7b7;
+  color: #047857;
   border: 2px solid var(--ok);
 }
 .feedback-wrong {
   background: var(--pending-bg);
-  color: var(--accent-light);
+  color: var(--accent-dark);
   border: 2px solid var(--pending);
 }
 
@@ -794,7 +785,7 @@ main {
 
 .bottom-bar .btn-secondary {
   border-radius: 999px;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.25);
 }
 
 /* ---------- Einstellungen-Flyout ---------- */
@@ -808,7 +799,7 @@ main {
   color: var(--ink);
   border: 2px solid var(--line);
   border-radius: 20px;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.28);
   padding: 18px 22px;
   display: flex;
   flex-wrap: wrap;
