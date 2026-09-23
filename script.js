@@ -980,7 +980,11 @@ function stopTargetPlayback() {
   listenBtn.disabled = false;
 }
 
-function playTargetRhythm() {
+// `skipCountIn`: für die auditive Bestätigung nach einem RICHTIG gelösten
+// Rhythmus (siehe onCheck) - dort geht es nicht mehr um Vorspielen/Merken,
+// sondern nur noch darum, kurz zu hören, dass das gerade Gebaute richtig
+// klingt. Ein erneuter Einzähler wäre dafür nur eine unnötige Verzögerung.
+function playTargetRhythm(skipCountIn = false) {
   if (isPlayingTarget) return; // sanftes Debounce, keine Bestrafung - verhindert nur überlappende Wiedergaben
   ensureAudioContext();
   isPlayingTarget = true;
@@ -989,7 +993,8 @@ function playTargetRhythm() {
   const ts = TIME_SIGNATURES[currentLevel().timeSignature];
   const unitSeconds = 60 / currentTempo().bpm / 2;
   const now = audioCtx.currentTime + 0.1;
-  const startAt = game.countIn ? beginCountIn(now, ts, unitSeconds) : now;
+  const useCountIn = game.countIn && !skipCountIn;
+  const startAt = useCountIn ? beginCountIn(now, ts, unitSeconds) : now;
 
   // Der Ziel-Rhythmus füllt den Takt immer lückenlos bis zum Ende (siehe
   // generateTargetRhythm) - der Zeigebalken darf deshalb einfach über die
@@ -997,7 +1002,7 @@ function playTargetRhythm() {
   // zu müssen.
   const rhythmEndTime = startAt + ts.units * unitSeconds;
   cursor = { rhythmStartTime: startAt, rhythmEndTime };
-  if (!game.countIn) startCursorLoop(); // mit Einzähler startet der Cursor erst, wenn der in tickCountIn zu Ende ist
+  if (!useCountIn) startCursorLoop(); // mit Einzähler startet der Cursor erst, wenn der in tickCountIn zu Ende ist
 
   game.target.forEach((note) => {
     const type = noteType(note.typeId);
@@ -1299,11 +1304,13 @@ function onCheck() {
 
   // Zur Bestätigung: der jetzt richtig im Raster stehende Rhythmus wird
   // noch einmal abgespielt, bevor es weitergeht - "so klingt er richtig!".
-  // Gleiches Muster wie bei der automatisch aufgedeckten Lösung oben: erst
-  // hart stoppen (falls noch etwas läuft), dann mindestens so lange
+  // Ohne Einzähler (skipCountIn), da es hier nur noch um die kurze
+  // auditive Bestätigung geht, nicht um erneutes Vorspielen/Merken.
+  // Gleiches Wartemuster wie bei der automatisch aufgedeckten Lösung oben:
+  // erst hart stoppen (falls noch etwas läuft), dann mindestens so lange
   // warten, wie die Wiedergabe tatsächlich dauert.
   stopTargetPlayback();
-  const audioSeconds = playTargetRhythm();
+  const audioSeconds = playTargetRhythm(true);
 
   if (game.roundInLevel >= ROUNDS_PER_LEVEL) {
     game.completedLevelIds.add(currentLevel().id);
