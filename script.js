@@ -1090,6 +1090,11 @@ function onCheck() {
       } else {
         game.attempt = correctNotes;
         renderMeasure();
+        // Bei jedem Fehlversuch automatisch (inkl. Einzähler, falls aktiv)
+        // noch einmal vorspielen - so hört man den Rhythmus nochmal, bevor
+        // man mit dem Rest weitermacht, statt erst manuell auf "Rhythmus
+        // anhören" tippen zu müssen.
+        playTargetRhythm();
       }
     }, WRONG_NOTE_REMOVE_MS);
     return;
