@@ -1,7 +1,7 @@
 :root {
   --bg-1: #ffffff;
   --bg-2: #f1f5f9;
-  --bg-3: #020617;
+  --bg-3: #172554;
   --ink: #0f172a;
   --ink-soft: #64748b;
   --ink-on-dark: #f1f5f9;
@@ -9,7 +9,7 @@
   --paper-alt: #f1f5f9;
   --line: #cbd5e1;
   --border-strong: #94a3b8;
-  --line-dark: #334155;
+  --line-dark: #1e3a8a;
   --accent: #f59e0b;
   --accent-light: #fbbf24;
   --accent-dark: #b45309;
@@ -103,7 +103,7 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title,
   min-height: 44px;
   transition: transform 0.12s ease, background 0.15s;
 }
-.btn:hover { background: #0f172a; }
+.btn:hover { background: #1e3a8a; }
 .btn:active { transform: scale(0.96); }
 
 .btn-secondary { background: var(--bg-3); }
