@@ -38,6 +38,10 @@ Punkten und Levels als Motivation.
   animiertes Overlay statt einer langen Text-Erklärung. Nach 5 Fehlversuchen
   in einer Runde wird die Lösung automatisch angezeigt und vorgespielt, damit
   niemand frustriert hängen bleibt (diese Runde zählt dann nicht als gelöst).
+  Ist die Runde dagegen richtig, wird der jetzt korrekt im Raster stehende
+  Rhythmus zur Bestätigung noch einmal abgespielt ("so klingt er richtig!")
+  - bewusst OHNE Einzähler, da es hier nur um die kurze auditive
+  Bestätigung geht, nicht um erneutes Vorspielen/Merken.
 - Nach 10 richtig gelösten Runden ist das Level geschafft, und es geht
   zurück zur Level-Übersicht.
 
@@ -52,7 +56,13 @@ mehr kürzere Notenwerte (mehr einzelne Klangereignisse pro Takt):
 3. Erste Pausen (4/4)
 4. Ganze Noten dazu (4/4)
 5. Alles gemischt (4/4)
-6. 3/4-Takt (Profi) - wie Level 5, aber im 3/4-Takt
+6. Zwei Takte (Profi) - wie Level 5, aber ZWEI aufeinanderfolgende 4/4-Takte
+   (16 statt 8 Achtel-Einheiten) statt eines einzelnen Takts - Kinder müssen
+   sich eine längere Phrase merken und richtig heraushören/nachbauen, statt
+   nur eine ungewohnte Taktart zu üben. Jeder der beiden Takte wird bei der
+   Erzeugung unabhängig lückenlos gefüllt (siehe `fillMeasure` in
+   `script.js`), keine Note reicht über die Taktgrenze (den dick markierten
+   Strich in der Mitte) hinweg.
 
 6/8-Takt ist (wie in der Konzeptnotiz als optionale spätere Erweiterung
 markiert) noch nicht enthalten.
@@ -73,8 +83,8 @@ eine echte, unbestrafte Übungsoption für Kinder, die mehr Zeit brauchen.
   teilen.
 - **Anzahl Schwierigkeitsstufen**: 6 Level (in der Konzeptnotiz explizit als
   offen markiert). Damit lässt sich die Progression fein genug abstufen
-  (Notenwert für Notenwert, dann Pausen, dann 3/4-Takt), ohne dass einzelne
-  Level zu ähnlich wirken.
+  (Notenwert für Notenwert, dann Pausen, dann eine zweitaktige Phrase), ohne
+  dass einzelne Level zu ähnlich wirken.
 - **Punktesystem**: 10 Punkte pro richtiger Runde, +5 Bonus bei Lösung im
   ersten Versuch. Bewusst KEIN Punktabzug für falsche Versuche oder
   wiederholtes Anhören, um die "keine Bestrafung"-Linie der Notiz konsequent

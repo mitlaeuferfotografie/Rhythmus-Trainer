@@ -9,8 +9,7 @@
 // clickInterval: Grundschlag-Klick auf jeder Viertel (alle 2 units) - gleiche
 // Konvention wie im Rhythmus-Generator.
 const TIME_SIGNATURES = {
-  '4/4': { top: 4, bottom: 4, units: 8, beatTicks: [0, 2, 4, 6, 8], labels: ['1', '+', '2', '+', '3', '+', '4', '+'], clickInterval: 2 },
-  '3/4': { top: 3, bottom: 4, units: 6, beatTicks: [0, 2, 4, 6], labels: ['1', '+', '2', '+', '3', '+'], clickInterval: 2 },
+  '4/4': { top: 4, bottom: 4, units: 8, labels: ['1', '+', '2', '+', '3', '+', '4', '+'], clickInterval: 2 },
 };
 
 // Gleiche echten Notationsformen (Wikimedia-Referenzglyphen) wie im
@@ -59,8 +58,11 @@ const noteType = (id) => NOTE_TYPES.find((t) => t.id === id);
    wenige Notenwerte ohne Pausen; "schwerer" heißt: mehr verschiedene
    Notenwerte, mehr Pausen-Anteil (restChance) und ein Übergewicht auf
    kürzeren Werten (unitWeights), wodurch spürbar mehr einzelne
-   Klangereignisse pro Takt entstehen. Level 6 wechselt zusätzlich in den
-   3/4-Takt. 6/8 bewusst weiterhin nicht enthalten (siehe README.md).
+   Klangereignisse pro Takt entstehen. Level 6 verlangt zusätzlich ZWEI
+   aufeinanderfolgende 4/4-Takte statt nur einem (measureCount: 2) - jeder
+   Takt wird bei der Erzeugung unabhängig lückenlos gefüllt, keine Note
+   reicht über die Taktgrenze hinweg (siehe generateTargetRhythm). 6/8
+   bewusst weiterhin nicht enthalten (siehe README.md).
    ============================================================ */
 
 const LEVELS = [
@@ -90,11 +92,13 @@ const LEVELS = [
     unitWeights: { 1: 6, 2: 5, 4: 2, 8: 1 }, restChance: 0.3,
   },
   {
-    // 3/4 fasst max. 6 Achtel-units - "whole"/"wholeRest" (8) passen nie
-    // hinein und bleiben deshalb hier bewusst weg.
-    id: 6, title: '3/4-Takt (Profi)', timeSignature: '3/4',
-    allowedTypeIds: ['half', 'halfRest', 'quarter', 'quarterRest', 'eighth', 'eighthRest'],
-    unitWeights: { 1: 6, 2: 5, 4: 2 }, restChance: 0.3,
+    // Zwei 4/4-Takte statt eines ungewohnten 3/4-Takts (auf Nutzerwunsch) -
+    // dieselben Notenwerte/Gewichte wie Level 5, aber als doppelt so lange
+    // Phrase: Kinder müssen sich jetzt über zwei Takte hinweg merken und
+    // richtig heraushören/nachbauen, statt nur eine andere Taktart zu üben.
+    id: 6, title: 'Zwei Takte (Profi)', timeSignature: '4/4', measureCount: 2,
+    allowedTypeIds: ['whole', 'wholeRest', 'half', 'halfRest', 'quarter', 'quarterRest', 'eighth', 'eighthRest'],
+    unitWeights: { 1: 6, 2: 5, 4: 2, 8: 1 }, restChance: 0.3,
   },
 ];
 
@@ -201,15 +205,15 @@ function pickWeighted(candidates) {
   return candidates[candidates.length - 1];
 }
 
-// Füllt den Takt lückenlos von Anfang bis Ende: pro Schritt wird zuerst eine
-// Dauer gewürfelt (gewichtet nach level.unitWeights, nur unter den Dauern,
-// die im Level erlaubt UND im Rest-Platz noch unterbringbar sind), danach -
-// falls für diese Dauer sowohl eine Note als auch eine Pause erlaubt sind -
-// per level.restChance entschieden, ob es eine Pause wird. Jedes Level
-// enthält bewusst immer auch die kleinste erlaubte Dauer, damit die Schleife
-// nie in einem Rest festhängt, der zu keiner erlaubten Dauer passt.
-function generateTargetRhythm(level) {
-  const capacity = TIME_SIGNATURES[level.timeSignature].units;
+// Füllt EINEN Takt (units-Kapazität übergeben, nicht die des ganzen
+// Levels) lückenlos von Anfang bis Ende: pro Schritt wird zuerst eine Dauer
+// gewürfelt (gewichtet nach level.unitWeights, nur unter den Dauern, die im
+// Level erlaubt UND im Rest-Platz noch unterbringbar sind), danach - falls
+// für diese Dauer sowohl eine Note als auch eine Pause erlaubt sind - per
+// level.restChance entschieden, ob es eine Pause wird. Jedes Level enthält
+// bewusst immer auch die kleinste erlaubte Dauer, damit die Schleife nie in
+// einem Rest festhängt, der zu keiner erlaubten Dauer passt.
+function fillMeasure(level, capacity, offset) {
   const notes = [];
   let position = 0;
   while (position < capacity) {
@@ -224,8 +228,22 @@ function generateTargetRhythm(level) {
     if (noteId && restId) typeId = Math.random() < level.restChance ? restId : noteId;
     else typeId = noteId || restId;
 
-    notes.push({ id: uid('n'), typeId, startUnit: position });
+    notes.push({ id: uid('n'), typeId, startUnit: offset + position });
     position += units;
+  }
+  return notes;
+}
+
+// Bei measureCount > 1 (siehe Level 6) wird JEDER Takt für sich unabhängig
+// lückenlos gefüllt (fillMeasure), statt einfach über die gesamte Länge
+// hinweg zu füllen - sonst könnte eine Note über eine Taktgrenze hinweg
+// reichen, was es in echter Notenschrift nicht gibt.
+function generateTargetRhythm(level) {
+  const perMeasureUnits = TIME_SIGNATURES[level.timeSignature].units;
+  const measureCount = level.measureCount || 1;
+  const notes = [];
+  for (let m = 0; m < measureCount; m++) {
+    notes.push(...fillMeasure(level, perMeasureUnits, m * perMeasureUnits));
   }
   return notes;
 }
@@ -299,7 +317,7 @@ function renderLevelSelect() {
       <span class="level-card-icons">
         ${level.allowedTypeIds.map((id) => `<span class="level-card-icon">${noteType(id).icon}</span>`).join('')}
       </span>
-      <span class="level-card-meter">${ts.top}/${ts.bottom}-Takt</span>
+      <span class="level-card-meter">${ts.top}/${ts.bottom}-Takt${level.measureCount > 1 ? ` × ${level.measureCount}` : ''}</span>
     `;
     card.addEventListener('click', () => startLevel(level.id));
     levelSelectGridEl.appendChild(card);
@@ -365,6 +383,15 @@ function formatBeats(units) {
 const unitsToPercent = (units, capacity) => (units / capacity) * 100;
 const anchorPercent = (units) => 50 / units;
 
+// Gesamt-Kapazität der aktuellen Runde in units - bei measureCount > 1
+// (Level 6) die Summe ALLER Takte, nicht nur eines einzelnen. Ersetzt die
+// früheren direkten TIME_SIGNATURES[...].units-Aufrufe überall dort, wo es
+// um die Platzierungs-/Prüf-/Render-Grenzen der gesamten Höraufgabe geht.
+function currentCapacity() {
+  const level = currentLevel();
+  return TIME_SIGNATURES[level.timeSignature].units * (level.measureCount || 1);
+}
+
 function measureExtent() {
   return game.attempt.reduce((max, n) => Math.max(max, n.startUnit + noteType(n.typeId).units), 0);
 }
@@ -374,7 +401,7 @@ function measureUnits() {
 }
 
 function measureStatus() {
-  const capacity = TIME_SIGNATURES[currentLevel().timeSignature].units;
+  const capacity = currentCapacity();
   const units = measureUnits();
   if (units === 0) return 'leer';
   const extent = measureExtent();
@@ -395,6 +422,8 @@ const measuresEl = document.getElementById('measures');
 function renderMeasure() {
   const level = currentLevel();
   const ts = TIME_SIGNATURES[level.timeSignature];
+  const measureCount = level.measureCount || 1;
+  const capacity = currentCapacity();
   const status = measureStatus();
 
   const wrap = document.createElement('div');
@@ -402,7 +431,8 @@ function renderMeasure() {
 
   const header = document.createElement('div');
   header.className = 'measure-header';
-  header.innerHTML = `<span class="measure-title">Dein Rhythmus (${ts.top}/${ts.bottom})</span>`;
+  const titleSuffix = measureCount > 1 ? ` × ${measureCount} Takte` : '';
+  header.innerHTML = `<span class="measure-title">Dein Rhythmus (${ts.top}/${ts.bottom}${titleSuffix})</span>`;
 
   const clearBtn = document.createElement('button');
   clearBtn.className = 'measure-clear';
@@ -418,14 +448,19 @@ function renderMeasure() {
   const track = document.createElement('div');
   track.className = 'slot-track';
 
-  ts.beatTicks.forEach((unitPos) => {
+  // Striche in jedem clickInterval-Abstand über die GESAMTE Kapazität
+  // (nicht nur einen Takt) - an jeder Taktgrenze (Vielfaches von ts.units,
+  // außer bei 0) dick/dunkel wie eine echte Taktstrich-Linie, dazwischen
+  // die üblichen dünnen Zählzeiten-Striche.
+  for (let unitPos = 0; unitPos <= capacity; unitPos += ts.clickInterval) {
+    const isBarline = unitPos > 0 && unitPos % ts.units === 0;
     const tick = document.createElement('div');
     tick.className = 'beat-tick';
-    tick.style.left = `${unitsToPercent(unitPos, ts.units)}%`;
-    tick.style.width = unitPos === ts.units ? '3px' : '1px';
-    tick.style.background = unitPos === ts.units ? '#8a8a8a' : '#dedad0';
+    tick.style.left = `${unitsToPercent(unitPos, capacity)}%`;
+    tick.style.width = isBarline ? '3px' : '1px';
+    tick.style.background = isBarline ? '#8a8a8a' : '#dedad0';
     track.appendChild(tick);
-  });
+  }
 
   renderMeasureNotes(track);
 
@@ -443,10 +478,13 @@ function renderMeasure() {
   warning.innerHTML = '<span></span>';
   track.appendChild(warning);
 
+  // Bei mehreren Takten wiederholt sich das Zählmuster (1 + 2 + 3 + 4 +)
+  // je Takt von neuem, statt einmal lang bis zum Ende hochzuzählen.
+  const allLabels = Array.from({ length: measureCount }, () => ts.labels).flat();
   const beatLabels = document.createElement('div');
   beatLabels.className = 'beat-labels';
-  beatLabels.style.gridTemplateColumns = `repeat(${ts.labels.length}, 1fr)`;
-  beatLabels.innerHTML = ts.labels.map((l) => `<span>${l}</span>`).join('');
+  beatLabels.style.gridTemplateColumns = `repeat(${allLabels.length}, 1fr)`;
+  beatLabels.innerHTML = allLabels.map((l) => `<span>${l}</span>`).join('');
 
   const trackColumn = document.createElement('div');
   trackColumn.className = 'track-column';
@@ -477,7 +515,7 @@ function renderMeasure() {
 // Zwei direkt aufeinanderfolgende einzelne Achtel als verbundenes Paar mit
 // gemeinsamem Balken (gleiche Erkennung wie im Rhythmus-Generator).
 function renderMeasureNotes(track) {
-  const capacity = TIME_SIGNATURES[currentLevel().timeSignature].units;
+  const capacity = currentCapacity();
   const layout = layoutNotes();
   let i = 0;
   while (i < layout.length) {
@@ -557,7 +595,7 @@ const dragGhost = document.getElementById('dragGhost');
 
 function currentUnitPx() {
   const track = document.querySelector('.slot-track');
-  const capacity = TIME_SIGNATURES[currentLevel().timeSignature].units;
+  const capacity = currentCapacity();
   if (!track) return 320 / capacity;
   return track.getBoundingClientRect().width / capacity;
 }
@@ -613,7 +651,7 @@ function updateDragVisuals(clientX, clientY) {
   if (!track) return;
   track.classList.add('drag-over');
 
-  const capacity = TIME_SIGNATURES[currentLevel().timeSignature].units;
+  const capacity = currentCapacity();
   const excludeNoteId = drag.kind === 'move' ? drag.noteId : null;
   const targetUnit = pushPastOverlaps(excludeNoteId, targetUnitFromX(track, clientX, capacity), drag.units);
 
@@ -642,7 +680,7 @@ function onDragEnd(e) {
   let showOverfullWarning = false;
 
   if (track) {
-    const capacity = TIME_SIGNATURES[currentLevel().timeSignature].units;
+    const capacity = currentCapacity();
     const excludeNoteId = drag.kind === 'move' ? drag.noteId : null;
     const targetUnit = pushPastOverlaps(excludeNoteId, targetUnitFromX(track, e.clientX, capacity), drag.units);
 
@@ -996,11 +1034,13 @@ function playTargetRhythm(skipCountIn = false) {
   const useCountIn = game.countIn && !skipCountIn;
   const startAt = useCountIn ? beginCountIn(now, ts, unitSeconds) : now;
 
-  // Der Ziel-Rhythmus füllt den Takt immer lückenlos bis zum Ende (siehe
+  // Der Ziel-Rhythmus füllt die gesamte Runde (bei measureCount > 1 also
+  // ALLE Takte zusammen) immer lückenlos bis zum Ende (siehe
   // generateTargetRhythm) - der Zeigebalken darf deshalb einfach über die
-  // volle Taktkapazität laufen, ohne die einzelnen Notenlängen aufsummieren
-  // zu müssen.
-  const rhythmEndTime = startAt + ts.units * unitSeconds;
+  // volle Kapazität laufen, ohne die einzelnen Notenlängen aufsummieren zu
+  // müssen.
+  const capacity = currentCapacity();
+  const rhythmEndTime = startAt + capacity * unitSeconds;
   cursor = { rhythmStartTime: startAt, rhythmEndTime };
   if (!useCountIn) startCursorLoop(); // mit Einzähler startet der Cursor erst, wenn der in tickCountIn zu Ende ist
 
@@ -1011,7 +1051,7 @@ function playTargetRhythm(skipCountIn = false) {
     if (!type.isRest) scheduleTone(t, duration * 0.92);
   });
   if (game.metronome) {
-    for (let u = 0; u < ts.units; u += ts.clickInterval) scheduleClick(startAt + u * unitSeconds);
+    for (let u = 0; u < capacity; u += ts.clickInterval) scheduleClick(startAt + u * unitSeconds);
   }
 
   const totalDuration = rhythmEndTime - now;
@@ -1124,7 +1164,7 @@ function noteMatchesProfile(note, profile, capacity) {
 }
 
 function checkAttempt(target, attempt) {
-  const capacity = TIME_SIGNATURES[currentLevel().timeSignature].units;
+  const capacity = currentCapacity();
   const profile = buildTargetProfile(target, capacity);
   // Muss den Takt komplett (lückenlos) ausfüllen - sonst könnten unausgefüllte
   // Lücken, die zufällig auf eine Pausen-Stelle des Ziels fallen, fälschlich
@@ -1143,7 +1183,7 @@ function checkAttempt(target, attempt) {
 // Lücke im Takt hinterlassen. Stattdessen wird pro Achtel-Einheit geprüft,
 // ob sie bereits abgedeckt ist, und der Rest lückenlos aufgefüllt.
 function buildRevealNotes(correctNotes) {
-  const capacity = TIME_SIGNATURES[currentLevel().timeSignature].units;
+  const capacity = currentCapacity();
   const covered = new Array(capacity).fill(false);
   correctNotes.forEach((note) => {
     const type = noteType(note.typeId);
@@ -1189,7 +1229,7 @@ function buildRevealNotes(correctNotes) {
 // richtig oder ganz falsch") - was an seiner Stelle passt, gilt als
 // "richtig" (bleibt stehen), der Rest gilt als "falsch" (wird entfernt).
 function partitionAttempt(target, attempt) {
-  const capacity = TIME_SIGNATURES[currentLevel().timeSignature].units;
+  const capacity = currentCapacity();
   const profile = buildTargetProfile(target, capacity);
   const correctNotes = [];
   const wrongNotes = [];
