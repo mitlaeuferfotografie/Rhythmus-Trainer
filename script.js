@@ -123,20 +123,22 @@ const currentTempo = () => TEMPO_OPTIONS.find((t) => t.id === game.tempoId) || T
 
 const STORAGE_KEY = 'rhythmusRaetselFortschritt';
 
+// Das Tempo wird bewusst NICHT gespeichert: Standard ist und bleibt immer
+// "Mittel", jedes Mal wenn ein Level (neu) gestartet wird - unabhängig davon,
+// was zuletzt gewählt war.
 function loadProgress() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { points: 0, completedLevelIds: [], metronome: true, countIn: true, tempoId: 'mittel' };
+    if (!raw) return { points: 0, completedLevelIds: [], metronome: true, countIn: true };
     const parsed = JSON.parse(raw);
     return {
       points: Math.max(0, Number(parsed.points) || 0),
       completedLevelIds: Array.isArray(parsed.completedLevelIds) ? parsed.completedLevelIds : [],
       metronome: parsed.metronome !== false,
       countIn: parsed.countIn !== false,
-      tempoId: TEMPO_OPTIONS.some((t) => t.id === parsed.tempoId) ? parsed.tempoId : 'mittel',
     };
   } catch (err) {
-    return { points: 0, completedLevelIds: [], metronome: true, countIn: true, tempoId: 'mittel' };
+    return { points: 0, completedLevelIds: [], metronome: true, countIn: true };
   }
 }
 
@@ -147,7 +149,6 @@ function saveProgress() {
       completedLevelIds: Array.from(game.completedLevelIds),
       metronome: game.metronome,
       countIn: game.countIn,
-      tempoId: game.tempoId,
     }));
   } catch (err) {
     /* z.B. Privater Modus ohne Speicherzugriff - Fortschritt bleibt dann nur für diese Sitzung erhalten */
@@ -169,6 +170,7 @@ const game = {
   attemptCount: 0, // Versuche in der AKTUELLEN Runde (für den Erstversuch-Bonus)
   target: [], // [{ id, typeId, startUnit }] - der vorgespielte Ziel-Rhythmus
   attempt: [], // dieselbe Form, vom Kind zusammengebaut
+  lastTargetSignature: null, // verhindert, dass zwei Runden hintereinander zufällig identisch ausfallen
   noteVolume: 0.6,
 };
 
@@ -219,6 +221,26 @@ function generateTargetRhythm(level) {
   return notes;
 }
 
+const targetSignature = (notes) => notes.map((n) => `${n.typeId}@${n.startUnit}`).join(',');
+
+// Jede Höraufgabe ist per Zufall erzeugt (siehe generateTargetRhythm) - bei
+// wenigen erlaubten Notenwerten (z.B. Level 1) ist der Ergebnisraum aber klein
+// genug, dass zwei Runden hintereinander per Zufall gleich ausfallen könnten,
+// was sich für Kinder wie "das ist ja gar nicht zufällig" anfühlt. Deshalb
+// wird bei einem Treffer mit der UNMITTELBAR vorherigen Runde bis zu 8x neu
+// gewürfelt (kein Blockieren bei winzigem Ergebnisraum: danach wird die letzte
+// Ziehung einfach akzeptiert).
+function generateFreshTargetRhythm(level) {
+  let notes = generateTargetRhythm(level);
+  let attempts = 0;
+  while (targetSignature(notes) === game.lastTargetSignature && attempts < 8) {
+    notes = generateTargetRhythm(level);
+    attempts += 1;
+  }
+  game.lastTargetSignature = targetSignature(notes);
+  return notes;
+}
+
 /* ============================================================
    Rendering: Bildschirm-Umschaltung (Level-Auswahl <-> Spiel)
    ============================================================ */
@@ -226,7 +248,6 @@ function generateTargetRhythm(level) {
 const levelSelectScreenEl = document.getElementById('levelSelectScreen');
 const playScreenEl = document.getElementById('playScreen');
 const backToSelectBtn = document.getElementById('backToSelectBtn');
-const playBottomBar = document.getElementById('playBottomBar');
 const levelLabelEl = document.getElementById('levelLabel');
 const pointsLabel = document.getElementById('pointsLabel');
 
@@ -235,7 +256,7 @@ function renderApp() {
   levelSelectScreenEl.hidden = inLevel;
   playScreenEl.hidden = !inLevel;
   backToSelectBtn.hidden = !inLevel;
-  playBottomBar.hidden = !inLevel;
+  checkBtn.hidden = !inLevel; // Einstellungen bleibt auf beiden Bildschirmen sichtbar, nur "Fertig/Prüfen" ist Level-spezifisch
   levelLabelEl.hidden = !inLevel;
   pointsLabel.textContent = `⭐ ${game.points} Punkte`;
 
@@ -280,6 +301,8 @@ function startLevel(levelId) {
   game.currentLevelId = levelId;
   game.screen = 'play';
   game.roundInLevel = 0;
+  game.tempoId = 'mittel'; // Standard ist immer Mittel, unabhängig davon, was zuletzt gewählt war
+  game.lastTargetSignature = null;
   renderApp();
   startRound();
 }
@@ -893,7 +916,7 @@ function renderProgressHeader() {
   pointsLabel.textContent = `⭐ ${game.points} Punkte`;
   roundDotsEl.innerHTML = Array.from({ length: ROUNDS_PER_LEVEL }, (_, i) => {
     const cls = i < game.roundInLevel ? 'round-dot is-done' : 'round-dot';
-    return `<span class="${cls}"></span>`;
+    return `<span class="${cls}">${i < game.roundInLevel ? '★' : '☆'}</span>`;
   }).join('');
 }
 
@@ -906,7 +929,6 @@ function renderTempoButtons() {
     btn.textContent = tempo.bonus ? `${tempo.label} (+${tempo.bonus})` : tempo.label;
     btn.addEventListener('click', () => {
       game.tempoId = tempo.id;
-      saveProgress();
       renderTempoButtons();
     });
     tempoButtonsEl.appendChild(btn);
@@ -928,7 +950,7 @@ function startRound() {
   roundToken += 1; // verwirft einen eventuell noch laufenden alten Timer
   game.attempt = [];
   game.attemptCount = 0;
-  game.target = generateTargetRhythm(currentLevel());
+  game.target = generateFreshTargetRhythm(currentLevel());
   feedbackEl.hidden = true;
   renderProgressHeader();
   renderTempoButtons();
@@ -953,6 +975,26 @@ function showFeedback(kind, text) {
   feedbackEl.textContent = text;
 }
 
+// Kurze, abwechslungsreiche Lob-Sätze statt einer langen Punkte-Aufschlüsselung
+// im Text - die Punkte selbst zeigt stattdessen das kurze Overlay (siehe
+// showPointsPopup), das ist deutlich schneller erfassbar für Kinder.
+const CORRECT_PHRASES = ['Richtig! 🎉', 'Super gemacht! 🌟', 'Klasse gehört! 🎵', 'Genau getroffen! 👏'];
+
+const pointsPopupEl = document.getElementById('pointsPopup');
+let pointsPopupTimeout = null;
+
+function showPointsPopup(points) {
+  pointsPopupEl.querySelector('.points-popup-value').textContent = `+${points}`;
+  pointsPopupEl.hidden = false;
+  pointsPopupEl.classList.remove('is-animating');
+  void pointsPopupEl.offsetWidth; // Reflow erzwingen, damit die Animation bei jedem Aufruf neu startet
+  pointsPopupEl.classList.add('is-animating');
+  clearTimeout(pointsPopupTimeout);
+  pointsPopupTimeout = setTimeout(() => {
+    pointsPopupEl.hidden = true;
+  }, 1400);
+}
+
 function onCheck() {
   game.attemptCount += 1;
   const correct = checkAttempt(game.target, game.attempt);
@@ -968,22 +1010,19 @@ function onCheck() {
   const earned = POINTS_PER_ROUND + firstTryBonus + tempo.bonus;
   game.points += earned;
   game.roundInLevel += 1;
-
-  const parts = [`+${POINTS_PER_ROUND}`];
-  if (firstTryBonus) parts.push(`+${firstTryBonus} (1. Versuch)`);
-  if (tempo.bonus) parts.push(`+${tempo.bonus} (${tempo.label.replace(/^\S+\s/, '')}-Tempo)`);
   playSuccessSound();
+  showPointsPopup(earned);
 
   if (game.roundInLevel >= ROUNDS_PER_LEVEL) {
     game.completedLevelIds.add(currentLevel().id);
     saveProgress();
-    showFeedback('correct', `Level geschafft! ${parts.join(' ')} Punkte 🎉`);
+    showFeedback('correct', 'Level geschafft! 🎉');
     scheduleNextStep(backToLevelSelect, 2400);
     return;
   }
 
   saveProgress();
-  showFeedback('correct', `Richtig! ${parts.join(' ')} Punkte`);
+  showFeedback('correct', CORRECT_PHRASES[Math.floor(Math.random() * CORRECT_PHRASES.length)]);
   scheduleNextStep(startRound, 1800);
 }
 
@@ -1055,7 +1094,6 @@ game.points = restored.points;
 game.completedLevelIds = new Set(restored.completedLevelIds);
 game.metronome = restored.metronome;
 game.countIn = restored.countIn;
-game.tempoId = restored.tempoId;
 metronomeToggle.checked = game.metronome;
 countInToggle.checked = game.countIn;
 renderApp();
