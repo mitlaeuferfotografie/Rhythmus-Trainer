@@ -29,6 +29,7 @@ Ursprüngliche Konzeptnotiz lag in
 - GitHub: `https://github.com/mitlaeuferfotografie/Rhythmus-Trainer`
   (Branch `main`, GitHub Pages "Deploy from a branch", Ordner `/ (root)`).
 - Live-URL: `https://mitlaeuferfotografie.github.io/Rhythmus-Trainer/`
+- Kurzlink: `https://kurzlinks.de/rhythmustrainer`
 - Lokal: `node serve.js`, dann `http://localhost:5179`.
 
 ## Technik / Architektur

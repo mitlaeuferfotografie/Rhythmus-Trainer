@@ -107,3 +107,4 @@ Wie beim Rhythmus-Generator: eigenständiges Repository, GitHub Pages
 
 - Repository: https://github.com/mitlaeuferfotografie/Rhythmus-Trainer
 - Live-URL: https://mitlaeuferfotografie.github.io/Rhythmus-Trainer/
+- Kurzlink: https://kurzlinks.de/rhythmustrainer
