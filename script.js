@@ -102,6 +102,14 @@ const ROUNDS_PER_LEVEL = 10;
 const POINTS_PER_ROUND = 10;
 const FIRST_TRY_BONUS = 5;
 
+// Nach 5 Fehlversuchen in derselben Runde wird die Lösung automatisch
+// eingeblendet, damit Kinder nicht endlos frustriert weiterprobieren müssen -
+// diese Runde zählt dann bewusst nicht als gelöst (keine Punkte, kein
+// Fortschritt), es geht einfach mit einer neuen Höraufgabe weiter.
+const MAX_WRONG_ATTEMPTS = 5;
+const WRONG_NOTE_REMOVE_MS = 550; // muss zur CSS-Animationsdauer von .note-wrong-removing passen
+const REVEAL_DISPLAY_MS = 3200;
+
 // Differenzierung: dasselbe Rätsel lässt sich langsam (zum Üben, ohne
 // Nachteil), mittelschnell oder schnell anhören - für "mittel"/"schnell"
 // gibt es beim Lösen einen Extra-Bonus, weil das schwerer zu hören ist.
@@ -168,6 +176,7 @@ const game = {
   tempoId: 'mittel',
   roundInLevel: 0, // 0-basiert, wie viele Runden in diesem Level schon richtig gelöst sind
   attemptCount: 0, // Versuche in der AKTUELLEN Runde (für den Erstversuch-Bonus)
+  wrongAttempts: 0, // falsche Prüfungen in der AKTUELLEN Runde (löst nach MAX_WRONG_ATTEMPTS die Lösungsanzeige aus)
   target: [], // [{ id, typeId, startUnit }] - der vorgespielte Ziel-Rhythmus
   attempt: [], // dieselbe Form, vom Kind zusammengebaut
   lastTargetSignature: null, // verhindert, dass zwei Runden hintereinander zufällig identisch ausfallen
@@ -490,9 +499,20 @@ function attachNoteInteractions(el, noteId) {
   });
 }
 
+// "confirmed" (nach einer Prüfung als richtig erkannt) bzw. "revealed" (nach
+// 5 Fehlversuchen automatisch eingeblendet) werden direkt auf dem Noten-
+// Objekt in game.attempt gespeichert (siehe onCheck) - dadurch bleibt die
+// grüne/blaue Markierung auch über weitere Renders hinweg erhalten, bis die
+// Runde neu startet.
+function noteStatusClass(note) {
+  if (note.confirmed) return ' note-correct';
+  if (note.revealed) return ' note-revealed';
+  return '';
+}
+
 function renderPlacedNote(note, type, capacity, startUnit) {
   const el = document.createElement('div');
-  el.className = 'placed-note';
+  el.className = `placed-note${noteStatusClass(note)}`;
   el.dataset.noteId = note.id;
   el.style.left = `${unitsToPercent(startUnit, capacity)}%`;
   el.style.width = `${unitsToPercent(type.units, capacity)}%`;
@@ -509,8 +529,8 @@ function renderEighthPair(noteA, noteB, capacity, startUnit) {
   el.style.left = `${unitsToPercent(startUnit, capacity)}%`;
   el.style.width = `${unitsToPercent(2, capacity)}%`;
   el.innerHTML = `
-    <div class="eighth-half" data-note-id="${noteA.id}"><span class="icon">${beamedIcon}</span><button class="delete-btn delete-btn-left" title="Entfernen">×</button></div>
-    <div class="eighth-half" data-note-id="${noteB.id}"><span class="icon">${beamedIcon}</span><button class="delete-btn" title="Entfernen">×</button></div>
+    <div class="eighth-half${noteStatusClass(noteA)}" data-note-id="${noteA.id}"><span class="icon">${beamedIcon}</span><button class="delete-btn delete-btn-left" title="Entfernen">×</button></div>
+    <div class="eighth-half${noteStatusClass(noteB)}" data-note-id="${noteB.id}"><span class="icon">${beamedIcon}</span><button class="delete-btn" title="Entfernen">×</button></div>
     <div class="beam-bar"></div>
   `;
   el.querySelectorAll('.eighth-half').forEach((half) => attachNoteInteractions(half, half.dataset.noteId));
@@ -950,6 +970,7 @@ function startRound() {
   roundToken += 1; // verwirft einen eventuell noch laufenden alten Timer
   game.attempt = [];
   game.attemptCount = 0;
+  game.wrongAttempts = 0;
   game.target = generateFreshTargetRhythm(currentLevel());
   feedbackEl.hidden = true;
   renderProgressHeader();
@@ -967,6 +988,25 @@ function checkAttempt(target, attempt) {
   const sortedTarget = target.slice().sort((a, b) => a.startUnit - b.startUnit);
   const sortedAttempt = attempt.slice().sort((a, b) => a.startUnit - b.startUnit);
   return sortedTarget.every((t, i) => t.typeId === sortedAttempt[i].typeId && t.startUnit === sortedAttempt[i].startUnit);
+}
+
+// Vergleicht jede Note EINZELN mit der Zielposition (statt nur "ganz richtig
+// oder ganz falsch") - Noten, die an ihrer Stelle exakt zum Ziel-Rhythmus
+// passen, gelten als "richtig" (bleiben stehen), alles andere (falscher
+// Notenwert an dieser Stelle, oder eine Note, wo im Ziel gar keine liegt)
+// gilt als "falsch" (wird entfernt). Da im Raster keine zwei Noten dieselbe
+// startUnit belegen können (siehe pushPastOverlaps), reicht ein Vergleich
+// über die Zählzeit, an der eine Note beginnt.
+function partitionAttempt(target, attempt) {
+  const targetByUnit = new Map(target.map((n) => [n.startUnit, n]));
+  const correctNotes = [];
+  const wrongNotes = [];
+  attempt.forEach((note) => {
+    const match = targetByUnit.get(note.startUnit);
+    if (match && match.typeId === note.typeId) correctNotes.push(note);
+    else wrongNotes.push(note);
+  });
+  return { correctNotes, wrongNotes };
 }
 
 function showFeedback(kind, text) {
@@ -995,13 +1035,63 @@ function showPointsPopup(points) {
   }, 1400);
 }
 
+// Markiert die im DOM bereits vorhandenen Elemente der übergebenen Noten mit
+// einer CSS-Klasse - für die "richtig"-Markierung (grüner Rahmen) und die
+// "wird entfernt"-Animation, BEVOR game.attempt verändert und neu gerendert
+// wird (sonst gäbe es nichts, das man noch animieren könnte).
+function markNoteElements(notes, className) {
+  notes.forEach((note) => {
+    document.querySelectorAll(`[data-note-id="${note.id}"]`).forEach((el) => el.classList.add(className));
+  });
+}
+
 function onCheck() {
   game.attemptCount += 1;
   const correct = checkAttempt(game.target, game.attempt);
 
   if (!correct) {
+    game.wrongAttempts += 1;
     playTryAgainSound();
-    showFeedback('wrong', 'Das war noch nicht ganz richtig - hör nochmal genau hin!');
+
+    const { correctNotes, wrongNotes } = partitionAttempt(game.target, game.attempt);
+    const revealSolution = game.wrongAttempts >= MAX_WRONG_ATTEMPTS;
+
+    correctNotes.forEach((n) => { n.confirmed = true; });
+    markNoteElements(correctNotes, 'note-correct');
+    markNoteElements(wrongNotes, 'note-wrong-removing');
+
+    if (revealSolution) {
+      showFeedback('wrong', 'Kein Problem! So sieht und klingt der richtige Rhythmus - genau hinschauen und -hören. 🎵');
+    } else if (wrongNotes.length > 0 && correctNotes.length > 0) {
+      showFeedback('wrong', 'Fast! Die grün umrahmten Noten stimmen schon - der Rest ist weg, mach damit weiter.');
+    } else if (wrongNotes.length > 0) {
+      showFeedback('wrong', 'Das war noch nicht ganz richtig - hör nochmal genau hin!');
+    } else {
+      showFeedback('wrong', 'Die grün umrahmten Noten stimmen schon - da fehlt aber noch etwas!');
+    }
+
+    // Erst nach der kurzen "Hinausflug"-Animation wirklich aus dem Zustand
+    // entfernen und neu rendern - sonst wäre die Note beim Rendern schon weg,
+    // bevor die Animation überhaupt zu sehen war.
+    scheduleNextStep(() => {
+      if (revealSolution) {
+        // Die fehlenden Noten des Ziel-Rhythmus ergänzen (als "revealed"
+        // markiert, optisch von den selbst richtig gebauten unterschieden)
+        // und danach automatisch - ohne Punkte/Fortschritt - zu einer neuen
+        // Höraufgabe weiter, damit niemand an einer Aufgabe hängen bleibt.
+        const confirmedUnits = new Set(correctNotes.map((n) => n.startUnit));
+        const revealedNotes = game.target
+          .filter((n) => !confirmedUnits.has(n.startUnit))
+          .map((n) => ({ ...n, revealed: true }));
+        game.attempt = [...correctNotes, ...revealedNotes];
+        renderMeasure();
+        playTargetRhythm();
+        scheduleNextStep(startRound, REVEAL_DISPLAY_MS);
+      } else {
+        game.attempt = correctNotes;
+        renderMeasure();
+      }
+    }, WRONG_NOTE_REMOVE_MS);
     return;
   }
 

@@ -575,6 +575,41 @@ main {
   display: none !important;
 }
 
+/* Feedback nach "Fertig / Prüfen": richtige Noten bekommen einen grünen
+   Rahmen und bleiben stehen; falsche fliegen kurz animiert aus dem Raster,
+   bevor sie aus dem Zustand entfernt werden (siehe onCheck in script.js). */
+.placed-note.note-correct {
+  border-color: var(--ok);
+  box-shadow: 0 0 0 3px rgba(47, 179, 124, 0.25);
+}
+.eighth-half.note-correct {
+  box-shadow: inset 0 0 0 3px var(--ok), 0 0 0 3px rgba(47, 179, 124, 0.25);
+  border-radius: 6px;
+}
+
+.placed-note.note-wrong-removing,
+.eighth-half.note-wrong-removing {
+  animation: noteFlyOut 0.55s ease-in forwards;
+  pointer-events: none;
+}
+@keyframes noteFlyOut {
+  0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-46px) scale(0.6) rotate(-12deg); opacity: 0; }
+}
+
+/* Nach 5 Fehlversuchen automatisch eingeblendete Lösungs-Noten - bewusst
+   anders markiert als selbst richtig gebaute (gestrichelt/blau statt grün),
+   damit klar bleibt, was das Kind selbst geschafft hat. */
+.placed-note.note-revealed {
+  border-style: dashed;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 79, 224, 0.18);
+}
+.eighth-half.note-revealed {
+  box-shadow: inset 0 0 0 3px var(--accent), 0 0 0 3px rgba(124, 79, 224, 0.18);
+  border-radius: 6px;
+}
+
 /* ---------- Palette (Noten/Pausen getrennt, wie im Rhythmus-Generator -
    nur die für das Level erlaubten Karten) ---------- */
 
