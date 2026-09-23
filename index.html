@@ -6,14 +6,15 @@
 <title>Rhythmus-Rätsel</title>
 <!-- ?v=N auf style.css/script.js bei jedem inhaltlichen Deploy erhöhen (siehe
      Rhythmus-Generator): GitHub Pages cacht beide Dateien 10 Minuten. -->
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
 <header class="toolbar">
+  <button id="backToSelectBtn" class="btn btn-secondary" hidden>◀ Level wählen</button>
   <h1>Rhythmus-Rätsel</h1>
   <div class="toolbar-progress">
-    <span id="levelLabel">Level 1 von 6</span>
+    <span id="levelLabel" hidden></span>
     <span id="pointsLabel">⭐ 0 Punkte</span>
   </div>
   <button id="settingsToggle" class="btn btn-secondary" aria-expanded="false" aria-controls="settingsPanel">
@@ -22,27 +23,46 @@
 </header>
 
 <main>
-  <section class="round-progress" aria-label="Fortschritt in diesem Level">
-    <div id="roundDots" class="round-dots"><!-- populated by script.js --></div>
+  <!-- ---------- Level-Auswahl ---------- -->
+  <section id="levelSelectScreen" aria-label="Level auswählen">
+    <p class="level-select-hint">Level auswählen - von einfach bis richtig knifflig:</p>
+    <div id="levelSelectGrid" class="level-select-grid"><!-- populated by script.js --></div>
   </section>
 
-  <section class="listen-area" aria-label="Ziel-Rhythmus anhören">
-    <button id="listenBtn" class="listen-btn">🔊 Rhythmus anhören</button>
-    <p class="listen-hint">So oft anhören, wie du willst - das zählt nicht negativ.</p>
-  </section>
+  <!-- ---------- Spielbildschirm ---------- -->
+  <section id="playScreen" hidden>
+    <section class="round-progress" aria-label="Fortschritt in diesem Level">
+      <div id="roundDots" class="round-dots"><!-- populated by script.js --></div>
+    </section>
 
-  <section class="score" aria-label="Rhythmus nachbauen">
-    <div id="measures" class="measures"><!-- populated by script.js --></div>
-  </section>
+    <section class="listen-area" aria-label="Ziel-Rhythmus anhören">
+      <button id="listenBtn" class="listen-btn">🔊 Rhythmus anhören</button>
+      <div id="tempoButtons" class="tempo-buttons"><!-- populated by script.js --></div>
+      <p class="listen-hint">So oft anhören, wie du willst - das zählt nicht negativ.</p>
+    </section>
 
-  <section class="palette" aria-label="Notenwerte-Palette">
-    <div class="palette-cards" id="paletteCards"><!-- populated by script.js --></div>
-  </section>
+    <section class="score" aria-label="Rhythmus nachbauen">
+      <div id="measures" class="measures"><!-- populated by script.js --></div>
+    </section>
 
-  <div id="feedback" class="feedback" hidden></div>
+    <section class="palette" aria-label="Notenwerte-Palette">
+      <div class="palette-columns">
+        <div class="palette-group">
+          <h3>Noten</h3>
+          <div class="palette-cards" id="paletteCardsNotes"><!-- populated by script.js --></div>
+        </div>
+        <div class="palette-group">
+          <h3>Pausen</h3>
+          <div class="palette-cards" id="paletteCardsRests"><!-- populated by script.js --></div>
+        </div>
+      </div>
+    </section>
+
+    <div id="feedback" class="feedback" hidden></div>
+  </section>
 </main>
 
-<div class="bottom-bar">
+<div id="playBottomBar" class="bottom-bar" hidden>
   <button id="checkBtn" class="check-btn">✓ Fertig / Prüfen</button>
 </div>
 
@@ -51,6 +71,16 @@
     <span>Lautstärke: <span id="noteVolumeValue">60</span> %</span>
     <input type="range" id="noteVolumeSlider" min="0" max="100" value="60">
   </label>
+  <div class="metronome-group">
+    <label class="metronome-label">
+      <input type="checkbox" id="metronomeToggle" checked>
+      Grundschlag
+    </label>
+    <label class="metronome-label">
+      <input type="checkbox" id="countInToggle" checked>
+      Einzähler
+    </label>
+  </div>
   <button id="resetProgressBtn" class="btn btn-secondary reset-btn" type="button">
     Fortschritt zurücksetzen
   </button>
@@ -58,6 +88,6 @@
 
 <div id="dragGhost" class="drag-ghost" hidden></div>
 
-<script src="script.js?v=1"></script>
+<script src="script.js?v=2"></script>
 </body>
 </html>

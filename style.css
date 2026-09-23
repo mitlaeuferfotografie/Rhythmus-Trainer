@@ -70,6 +70,77 @@ h1, h2, h3 { margin: 0; }
 
 .btn-secondary { background: #565656; }
 
+/* ---------- Level-Auswahl ---------- */
+
+.level-select-hint {
+  text-align: center;
+  color: #6b6b6b;
+  margin: 20px 0 4px;
+}
+
+.level-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  padding: 4px 0 24px;
+}
+
+.level-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px 18px;
+  background: var(--paper);
+  border: 3px solid var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+.level-card:hover { border-color: var(--accent); }
+.level-card.is-done { border-color: var(--ok); background: var(--ok-bg); }
+
+.level-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.level-card-number {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8a8a8a;
+}
+.level-card-check {
+  color: var(--ok);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.level-card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.level-card-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.level-card-icon {
+  width: 20px;
+  height: 24px;
+}
+.level-card-icon svg { width: 100%; height: 100%; display: block; }
+
+.level-card-meter {
+  font-size: 0.75rem;
+  color: #6b6b6b;
+}
+
 /* ---------- Fortschritt im Level (Punkte/Sterne-Reihe) ---------- */
 
 .round-progress {
@@ -80,12 +151,14 @@ h1, h2, h3 { margin: 0; }
 
 .round-dots {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
 }
 
 .round-dot {
-  width: 20px;
-  height: 20px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: var(--paper);
   border: 2px solid var(--line);
@@ -130,6 +203,70 @@ h1, h2, h3 { margin: 0; }
   color: #6b6b6b;
   text-align: center;
 }
+
+.tempo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tempo-btn {
+  padding: 8px 14px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tempo-btn:hover { border-color: var(--accent); }
+.tempo-btn.is-selected {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+/* Einzähler-Overlay: schwebt transparent über der ganzen Takt-Karte, solange
+   "Rhythmus anhören" vorzählt - bewusst kein Hintergrund, damit das Raster
+   dahinter sichtbar bleibt (gleiche Lösung wie im Rhythmus-Generator). */
+.count-in-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 0 28px;
+  pointer-events: none;
+}
+.count-in-overlay[hidden] { display: none; }
+
+.count-in-number {
+  font-size: 6rem;
+  font-weight: 700;
+  color: var(--accent);
+  opacity: 0.88;
+  line-height: 1;
+}
+.count-in-number.bounce { animation: countInBounce 0.25s ease-out; }
+@keyframes countInBounce {
+  0% { transform: scale(1.4); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.88; }
+}
+
+.count-in-dots { display: flex; gap: 8px; }
+.count-in-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--line);
+  transition: background 0.15s;
+}
+.count-in-dot.active { background: var(--accent); }
 
 /* ---------- Takt-Karte (Versuch des Kindes) ---------- */
 
@@ -390,17 +527,52 @@ main {
   display: none !important;
 }
 
-/* ---------- Palette (nur die für das Level erlaubten Karten) ---------- */
+/* ---------- Palette (Noten/Pausen getrennt, wie im Rhythmus-Generator -
+   nur die für das Level erlaubten Karten) ---------- */
 
 .palette {
   padding: 8px 0 4px;
 }
 
+.palette-columns {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.palette-group {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.palette-group + .palette-group {
+  border-left: 2px solid var(--line);
+  padding-left: 20px;
+}
+.palette-group h3 {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9a968c;
+}
+
 .palette-cards {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .palette-columns { flex-direction: column; gap: 14px; }
+  .palette-group + .palette-group {
+    border-left: none;
+    padding-left: 0;
+    border-top: 2px solid var(--line);
+    padding-top: 12px;
+  }
 }
 
 .note-card {
@@ -517,6 +689,24 @@ main {
 }
 .volume-label input[type="range"] {
   width: 100%;
+}
+
+.metronome-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.metronome-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+.metronome-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
 }
 
 .reset-btn {

@@ -12,38 +12,60 @@ Punkten und Levels als Motivation.
 
 ## Spielprinzip
 
-- Die App spielt einen Ziel-Rhythmus als Klick-Ton vor (🔊 Rhythmus anhören).
-  Beliebig oft wiederholbar (🔁), ohne dass das negativ zählt - genaues,
-  wiederholtes Hinhören ist gewünschtes Lernverhalten, keine Schwäche.
-- Das Kind zieht Noten-/Pausenkarten aus der Palette in das Taktraster, bis
-  es meint, den Rhythmus getroffen zu haben. Ein Takt kann nicht "übervoll"
-  gezogen werden (gleiches Verhalten wie im Rhythmus-Generator).
+- Eine Level-Übersicht (einfach bis richtig knifflig) lässt Kinder selbst
+  wählen, welches Level sie üben wollen - kein Freischalten, keine feste
+  Reihenfolge. Ein grüner Haken markiert Level, die schon einmal komplett
+  (10/10 Runden) gelöst wurden.
+- Die App spielt einen Ziel-Rhythmus vor (🔊 Rhythmus anhören) - wahlweise
+  🐢 Langsam, 🚶 Mittel oder 🐇 Schnell (Differenzierung). Beliebig oft
+  wiederholbar, ohne dass das negativ zählt - genaues, wiederholtes Hinhören
+  ist gewünschtes Lernverhalten, keine Schwäche. Ein Einzähler und ein
+  Grundschlag-Klick (beide in den Einstellungen einzeln abschaltbar) helfen,
+  ins Tempo zu kommen.
+- Das Kind zieht Noten-/Pausenkarten (getrennt nach Noten/Pausen, wie im
+  Rhythmus-Generator) aus der Palette in das Taktraster, bis es meint, den
+  Rhythmus getroffen zu haben. Ein Takt kann nicht "übervoll" gezogen werden.
 - "✓ Fertig / Prüfen" vergleicht die Lösung exakt mit dem Ziel-Rhythmus.
   Richtig: Punkte + freundliches Feedback, automatisch weiter zur nächsten
   Runde. Falsch: freundlicher Hinweis, beliebig viele neue Versuche möglich -
   keine Bestrafung, kein Abbruch.
-- Nach 4 richtig gelösten Runden schaltet das nächste Level frei (Fortschritt
-  wird als Punkte-Reihe oben im Level angezeigt).
+- Nach 10 richtig gelösten Runden ist das Level geschafft, und es geht
+  zurück zur Level-Übersicht.
 
 ## Level
 
-1. Nur Viertelnoten (4/4)
-2. Viertel + Achtelpaar (4/4)
-3. + Halbe Note (4/4)
-4. + Pausen (4/4)
-5. Alle Notenwerte/Pausen gemischt (4/4)
-6. Wie Level 5, aber im 3/4-Takt
+Jedes Level mischt von Anfang an mehrere Notenwerte (nie nur einen
+einzigen) - je schwerer, desto mehr verschiedene Notenwerte/Pausen und desto
+mehr kürzere Notenwerte (mehr einzelne Klangereignisse pro Takt):
+
+1. Viertel & Halbe (4/4)
+2. Mit Achteln (4/4)
+3. Erste Pausen (4/4)
+4. Ganze Noten dazu (4/4)
+5. Alles gemischt (4/4)
+6. 3/4-Takt (Profi) - wie Level 5, aber im 3/4-Takt
 
 6/8-Takt ist (wie in der Konzeptnotiz als optionale spätere Erweiterung
 markiert) noch nicht enthalten.
 
+## Tempo-Bonus
+
+Richtige Lösung bei 🚶 Mittel: +5 Bonus. Bei 🐇 Schnell: +10 Bonus. 🐢 Langsam
+gibt keinen Tempo-Bonus (dafür aber auch keinen Nachteil) - so bleibt Langsam
+eine echte, unbestrafte Übungsoption für Kinder, die mehr Zeit brauchen.
+
 ## Bewusste Entscheidungen zu offenen Punkten der Konzeptnotiz
 
-- **Punktestand/Level-Fortschritt**: wird per `localStorage` gesichert (Level
-  + Gesamtpunkte, kein Nutzerkonto, keine Cloud) - sonst würde jedes Kind bei
-  jedem Tabletwechsel wieder bei Level 1 starten. Ein "Fortschritt
-  zurücksetzen"-Knopf in den Einstellungen dient als Escape-Hatch, falls sich
-  mehrere Kinder ein Tablet teilen.
+- **Punktestand/Level-Fortschritt**: wird per `localStorage` gesichert
+  (Gesamtpunkte + welche Level schon komplett gelöst wurden, kein
+  Nutzerkonto, keine Cloud) - sonst würde jedes Kind bei jedem Tabletwechsel
+  wieder von null anfangen. Ein "Fortschritt zurücksetzen"-Knopf in den
+  Einstellungen dient als Escape-Hatch, falls sich mehrere Kinder ein Tablet
+  teilen.
+- **Anzahl Schwierigkeitsstufen**: 6 Level (in der Konzeptnotiz explizit als
+  offen markiert). Damit lässt sich die Progression fein genug abstufen
+  (Notenwert für Notenwert, dann Pausen, dann 3/4-Takt), ohne dass einzelne
+  Level zu ähnlich wirken.
 - **Punktesystem**: 10 Punkte pro richtiger Runde, +5 Bonus bei Lösung im
   ersten Versuch. Bewusst KEIN Punktabzug für falsche Versuche oder
   wiederholtes Anhören, um die "keine Bestrafung"-Linie der Notiz konsequent
