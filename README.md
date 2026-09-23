@@ -103,5 +103,7 @@ Doppelklick im Browser öffnen.
 ## Hosting über GitHub Pages
 
 Wie beim Rhythmus-Generator: eigenständiges Repository, GitHub Pages
-"Deploy from a branch", Branch `main`, Ordner `/ (root)`. Folgt später,
-sobald der erste Stand geprüft ist.
+"Deploy from a branch", Branch `main`, Ordner `/ (root)`.
+
+- Repository: https://github.com/mitlaeuferfotografie/Rhythmus-Trainer
+- Live-URL: https://mitlaeuferfotografie.github.io/Rhythmus-Trainer/
