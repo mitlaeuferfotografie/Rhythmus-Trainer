@@ -1297,17 +1297,25 @@ function onCheck() {
   playSuccessSound();
   showPointsPopup(earned);
 
+  // Zur Bestätigung: der jetzt richtig im Raster stehende Rhythmus wird
+  // noch einmal abgespielt, bevor es weitergeht - "so klingt er richtig!".
+  // Gleiches Muster wie bei der automatisch aufgedeckten Lösung oben: erst
+  // hart stoppen (falls noch etwas läuft), dann mindestens so lange
+  // warten, wie die Wiedergabe tatsächlich dauert.
+  stopTargetPlayback();
+  const audioSeconds = playTargetRhythm();
+
   if (game.roundInLevel >= ROUNDS_PER_LEVEL) {
     game.completedLevelIds.add(currentLevel().id);
     saveProgress();
     showFeedback('correct', 'Level geschafft! 🎉');
-    scheduleNextStep(backToLevelSelect, 2400);
+    scheduleNextStep(backToLevelSelect, Math.max(2400, audioSeconds * 1000 + 500));
     return;
   }
 
   saveProgress();
   showFeedback('correct', CORRECT_PHRASES[Math.floor(Math.random() * CORRECT_PHRASES.length)]);
-  scheduleNextStep(startRound, 1800);
+  scheduleNextStep(startRound, Math.max(1800, audioSeconds * 1000 + 500));
 }
 
 /* ============================================================
