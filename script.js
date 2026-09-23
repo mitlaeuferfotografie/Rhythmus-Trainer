@@ -428,6 +428,14 @@ function renderMeasure() {
 
   renderMeasureNotes(track);
 
+  // Laufender Zeigebalken, der beim Vorspielen des Ziel-Rhythmus über den
+  // Takt wandert - gleiche Idee wie im Rhythmus-Generator, hier aber nur
+  // während der eigentlichen (Nach-Einzähler-)Wiedergabe aktiv, siehe
+  // startCursorLoop/tickCursor.
+  const playhead = document.createElement('div');
+  playhead.className = 'playhead';
+  track.appendChild(playhead);
+
   const warning = document.createElement('div');
   warning.className = 'measure-warning';
   warning.hidden = true;
@@ -872,6 +880,7 @@ function tickCountIn() {
     }
     if (now >= countIn.endTime) {
       endCountIn();
+      startCursorLoop();
       return;
     }
   }
@@ -889,6 +898,46 @@ function endCountIn() {
   overlay.querySelectorAll('.count-in-dot').forEach((dot) => dot.classList.remove('active'));
 }
 
+// Laufender Zeigebalken während der eigentlichen Rhythmus-Wiedergabe (NACH
+// einem etwaigen Einzähler) - zusätzliches visuelles Feedback dazu, WANN im
+// Takt man sich gerade befindet, analog zum Playhead im Rhythmus-Generator.
+// Bewusst eine eigene, einfache einmalige Sequenz statt eines Live-
+// Schedulers wie dort, weil der Ziel-Rhythmus hier fix ist und nicht
+// während des Abspielens bearbeitet werden kann.
+let cursor = null; // { rhythmStartTime, rhythmEndTime }
+let cursorRAF = null;
+
+function startCursorLoop() {
+  if (!cursor) return;
+  cursorRAF = requestAnimationFrame(tickCursor);
+}
+
+function tickCursor() {
+  if (!cursor) return;
+  const now = audioCtx.currentTime;
+  if (now >= cursor.rhythmEndTime) {
+    stopCursorLoop();
+    return;
+  }
+  // Jeden Frame frisch abfragen statt eine Referenz zu behalten - das
+  // Raster kann währenddessen neu gerendert worden sein (z.B. durch
+  // Ziehen einer Note oder nach einem Prüfen-Versuch).
+  const playhead = document.querySelector('.playhead');
+  if (playhead) {
+    const pct = ((now - cursor.rhythmStartTime) / (cursor.rhythmEndTime - cursor.rhythmStartTime)) * 100;
+    playhead.style.left = `${Math.max(0, Math.min(100, pct))}%`;
+    playhead.classList.add('active');
+  }
+  cursorRAF = requestAnimationFrame(tickCursor);
+}
+
+function stopCursorLoop() {
+  if (cursorRAF) cancelAnimationFrame(cursorRAF);
+  cursorRAF = null;
+  document.querySelectorAll('.playhead.active').forEach((p) => p.classList.remove('active'));
+  cursor = null;
+}
+
 let isPlayingTarget = false;
 
 function playTargetRhythm() {
@@ -902,18 +951,25 @@ function playTargetRhythm() {
   const now = audioCtx.currentTime + 0.1;
   const startAt = game.countIn ? beginCountIn(now, ts, unitSeconds) : now;
 
-  let totalDuration = startAt - now;
+  // Der Ziel-Rhythmus füllt den Takt immer lückenlos bis zum Ende (siehe
+  // generateTargetRhythm) - der Zeigebalken darf deshalb einfach über die
+  // volle Taktkapazität laufen, ohne die einzelnen Notenlängen aufsummieren
+  // zu müssen.
+  const rhythmEndTime = startAt + ts.units * unitSeconds;
+  cursor = { rhythmStartTime: startAt, rhythmEndTime };
+  if (!game.countIn) startCursorLoop(); // mit Einzähler startet der Cursor erst, wenn der in tickCountIn zu Ende ist
+
   game.target.forEach((note) => {
     const type = noteType(note.typeId);
     const duration = type.units * unitSeconds;
     const t = startAt + note.startUnit * unitSeconds;
     if (!type.isRest) scheduleTone(t, duration * 0.92);
-    totalDuration = Math.max(totalDuration, t - now + duration);
   });
   if (game.metronome) {
     for (let u = 0; u < ts.units; u += ts.clickInterval) scheduleClick(startAt + u * unitSeconds);
   }
 
+  const totalDuration = rhythmEndTime - now;
   activeTimeouts.push(
     setTimeout(() => {
       isPlayingTarget = false;

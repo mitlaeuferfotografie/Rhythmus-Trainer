@@ -403,6 +403,25 @@ main {
   pointer-events: none;
 }
 
+/* Laufender Zeigebalken beim Vorspielen des Ziel-Rhythmus (nach einem
+   etwaigen Einzähler) - zusätzliches visuelles Feedback dazu, wo im Takt man
+   sich gerade befindet, analog zum Rhythmus-Generator. */
+.playhead {
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  left: 0;
+  width: 4px;
+  margin-left: -2px;
+  background: var(--accent-2);
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(255, 138, 91, 0.7);
+  pointer-events: none;
+  z-index: 6;
+  display: none;
+}
+.playhead.active { display: block; }
+
 .slot-track.drag-over {
   border-color: var(--accent);
   background-color: #f1ecff;
