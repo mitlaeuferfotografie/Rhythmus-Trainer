@@ -318,6 +318,7 @@ function startLevel(levelId) {
 
 function backToLevelSelect() {
   roundToken += 1; // verwirft jeden noch ausstehenden "nächste Runde"-Timer
+  stopTargetPlayback(); // Audio/Einzähler/Cursor nicht in die Level-Auswahl hinüberlaufen lassen
   game.screen = 'select';
   game.currentLevelId = null;
   renderApp();
@@ -653,6 +654,14 @@ function onDragEnd(e) {
       const note = game.attempt.find((n) => n.id === drag.noteId);
       if (note) {
         game.attempt = game.attempt.filter((n) => n.id !== drag.noteId);
+        // Eine "richtig"/"aufgedeckt"-Markierung gilt nur für die Stelle, an
+        // der sie vergeben wurde - wird die Note woandershin verschoben,
+        // muss sie erst wieder neu geprüft werden, sonst zeigt sie
+        // fälschlich einen grünen/blauen Rahmen an einer ungeprüften Stelle.
+        if (note.startUnit !== targetUnit) {
+          delete note.confirmed;
+          delete note.revealed;
+        }
         note.startUnit = targetUnit;
         game.attempt.push(note);
       }
@@ -939,6 +948,37 @@ function stopCursorLoop() {
 }
 
 let isPlayingTarget = false;
+let playbackResetTimeout = null; // der EINE Timer, der isPlayingTarget zurücksetzt - siehe stopTargetPlayback
+
+// Beendet eine noch laufende Wiedergabe sofort und hart (Oszillatoren, Klick-
+// Timer, Einzähler, Cursor, Debounce-Flag). Wird vor jedem AUTOMATISCHEN
+// Neustart der Wiedergabe aufgerufen (neue Runde, erneutes Vorspielen nach
+// einem Fehlversuch) - ohne das könnte z.B. ein schneller Kind, das die
+// Aufgabe löst, bevor die ursprüngliche Vorspiel-Wiedergabe fertig ist, dazu
+// führen, dass isPlayingTarget noch "true" ist und die nächste Runde
+// dadurch stumm bleibt (die Debounce-Prüfung in playTargetRhythm würde den
+// Aufruf sonst einfach verwerfen). Die manuelle "Rhythmus anhören"-Taste
+// bleibt bewusst über die normale Debounce-Prüfung geschützt (kein hartes
+// Stoppen bei jedem Klick), damit Doppelklicks nicht zwei überlappende
+// Wiedergaben gleichzeitig starten.
+function stopTargetPlayback() {
+  if (playbackResetTimeout) {
+    clearTimeout(playbackResetTimeout);
+    playbackResetTimeout = null;
+  }
+  activeOscillators.forEach((osc) => {
+    try {
+      osc.stop();
+    } catch (err) {
+      /* bereits gestoppt */
+    }
+  });
+  activeOscillators = [];
+  endCountIn();
+  stopCursorLoop();
+  isPlayingTarget = false;
+  listenBtn.disabled = false;
+}
 
 function playTargetRhythm() {
   if (isPlayingTarget) return; // sanftes Debounce, keine Bestrafung - verhindert nur überlappende Wiedergaben
@@ -970,12 +1010,14 @@ function playTargetRhythm() {
   }
 
   const totalDuration = rhythmEndTime - now;
-  activeTimeouts.push(
-    setTimeout(() => {
-      isPlayingTarget = false;
-      listenBtn.disabled = false;
-    }, (totalDuration + 0.15) * 1000)
-  );
+  playbackResetTimeout = setTimeout(() => {
+    playbackResetTimeout = null;
+    isPlayingTarget = false;
+    listenBtn.disabled = false;
+  }, (totalDuration + 0.15) * 1000);
+  activeTimeouts.push(playbackResetTimeout);
+
+  return totalDuration; // in Sekunden - z.B. für die Lösungsanzeige genutzt, um lange genug zu warten (siehe onCheck)
 }
 
 /* ============================================================
@@ -1024,6 +1066,7 @@ function scheduleNextStep(fn, delay) {
 
 function startRound() {
   roundToken += 1; // verwirft einen eventuell noch laufenden alten Timer
+  stopTargetPlayback(); // falls die vorherige Runde beim Übergang noch nicht fertig abgespielt war
   game.attempt = [];
   game.attemptCount = 0;
   game.wrongAttempts = 0;
@@ -1084,6 +1127,57 @@ function checkAttempt(target, attempt) {
   const attemptUnits = attempt.reduce((sum, n) => sum + noteType(n.typeId).units, 0);
   if (attemptUnits !== capacity) return false;
   return attempt.every((note) => noteMatchesProfile(note, profile, capacity));
+}
+
+// Baut die fehlenden Noten für die automatische Lösungsanzeige (nach 5
+// Fehlversuchen) - NICHT einfach "alle Ziel-Noten, deren startUnit nicht
+// unter den bestätigten liegt", denn seit Pausen flexibel aufgeteilt werden
+// dürfen (siehe buildTargetProfile) kann eine bestätigte Pause im Versuch
+// nur einen TEIL einer einzelnen Ziel-Pause abdecken - ihre startUnit würde
+// dann fälschlich die GANZE Ziel-Pause als "schon da" ausschließen und eine
+// Lücke im Takt hinterlassen. Stattdessen wird pro Achtel-Einheit geprüft,
+// ob sie bereits abgedeckt ist, und der Rest lückenlos aufgefüllt.
+function buildRevealNotes(correctNotes) {
+  const capacity = TIME_SIGNATURES[currentLevel().timeSignature].units;
+  const covered = new Array(capacity).fill(false);
+  correctNotes.forEach((note) => {
+    const type = noteType(note.typeId);
+    for (let u = note.startUnit; u < note.startUnit + type.units; u++) covered[u] = true;
+  });
+
+  const revealedNotes = [];
+  // Klingende Ziel-Noten sind laut noteMatchesProfile entweder komplett
+  // bestätigt oder gar nicht (eine andere Aufteilung würde dort nie als
+  // richtig durchgehen) - unbestätigte werden 1:1 übernommen.
+  game.target.forEach((note) => {
+    const type = noteType(note.typeId);
+    if (type.isRest || covered[note.startUnit]) return;
+    revealedNotes.push({ ...note, revealed: true });
+    for (let u = note.startUnit; u < note.startUnit + type.units; u++) covered[u] = true;
+  });
+
+  // Restliche (noch unbedeckte) Einheiten müssen laut obiger Schleife
+  // Pausen sein - lückenlos mit der jeweils größten passenden Pausenkarte
+  // auffüllen (die genaue Aufteilung ist bei Pausen ja ohnehin egal). Die
+  // Größe muss sich am Ende der AKTUELLEN Lücke (runEnd) orientieren, nicht
+  // am Taktende - sonst könnte eine zu große Pausenkarte über eine bereits
+  // abgedeckte Einheit hinausragen und sie überlappen.
+  const restTypesDesc = [8, 4, 2, 1].map((units) => NOTE_TYPES.find((t) => t.isRest && t.units === units));
+  let u = 0;
+  while (u < capacity) {
+    if (covered[u]) { u += 1; continue; }
+    let runEnd = u;
+    while (runEnd < capacity && !covered[runEnd]) runEnd += 1;
+    let pos = u;
+    while (pos < runEnd) {
+      const remaining = runEnd - pos;
+      const restType = restTypesDesc.find((t) => t.units <= remaining);
+      revealedNotes.push({ id: uid('n'), typeId: restType.id, startUnit: pos, revealed: true });
+      pos += restType.units;
+    }
+    u = runEnd;
+  }
+  return revealedNotes;
 }
 
 // Vergleicht jede Note/Pause EINZELN mit dem Ziel-Profil (statt nur "ganz
@@ -1166,25 +1260,29 @@ function onCheck() {
     // bevor die Animation überhaupt zu sehen war.
     scheduleNextStep(() => {
       if (revealSolution) {
-        // Die fehlenden Noten des Ziel-Rhythmus ergänzen (als "revealed"
-        // markiert, optisch von den selbst richtig gebauten unterschieden)
-        // und danach automatisch - ohne Punkte/Fortschritt - zu einer neuen
-        // Höraufgabe weiter, damit niemand an einer Aufgabe hängen bleibt.
-        const confirmedUnits = new Set(correctNotes.map((n) => n.startUnit));
-        const revealedNotes = game.target
-          .filter((n) => !confirmedUnits.has(n.startUnit))
-          .map((n) => ({ ...n, revealed: true }));
-        game.attempt = [...correctNotes, ...revealedNotes];
+        game.attempt = [...correctNotes, ...buildRevealNotes(correctNotes)];
         renderMeasure();
-        playTargetRhythm();
-        scheduleNextStep(startRound, REVEAL_DISPLAY_MS);
+        stopTargetPlayback(); // vorherige Wiedergabe/Einzähler/Cursor hart beenden, bevor neu gestartet wird
+        const audioSeconds = playTargetRhythm();
+        // Ohne Punkte/Fortschritt zu einer neuen Höraufgabe weiter, damit
+        // niemand an einer Aufgabe hängen bleibt - aber mindestens so lange
+        // warten, wie die Wiedergabe (Einzähler + Rhythmus) tatsächlich
+        // dauert, sonst würde sie bei langsamem Tempo/aktivem Einzähler
+        // mitten im Vorspielen abgeschnitten.
+        scheduleNextStep(startRound, Math.max(REVEAL_DISPLAY_MS, audioSeconds * 1000 + 500));
       } else {
-        game.attempt = correctNotes;
+        // Über die IDs herausfiltern statt game.attempt hart auf correctNotes
+        // zu setzen - falls in der kurzen Animationszeit schon weitergebaut
+        // wurde, bleibt eine neu hinzugefügte Note dadurch erhalten, statt
+        // durch diese ältere Momentaufnahme überschrieben zu werden.
+        const wrongIds = new Set(wrongNotes.map((n) => n.id));
+        game.attempt = game.attempt.filter((n) => !wrongIds.has(n.id));
         renderMeasure();
         // Bei jedem Fehlversuch automatisch (inkl. Einzähler, falls aktiv)
         // noch einmal vorspielen - so hört man den Rhythmus nochmal, bevor
         // man mit dem Rest weitermacht, statt erst manuell auf "Rhythmus
         // anhören" tippen zu müssen.
+        stopTargetPlayback();
         playTargetRhythm();
       }
     }, WRONG_NOTE_REMOVE_MS);

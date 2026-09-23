@@ -25,10 +25,19 @@ Punkten und Levels als Motivation.
 - Das Kind zieht Noten-/Pausenkarten (getrennt nach Noten/Pausen, wie im
   Rhythmus-Generator) aus der Palette in das Taktraster, bis es meint, den
   Rhythmus getroffen zu haben. Ein Takt kann nicht "übervoll" gezogen werden.
-- "✓ Fertig / Prüfen" vergleicht die Lösung exakt mit dem Ziel-Rhythmus.
-  Richtig: Punkte + freundliches Feedback, automatisch weiter zur nächsten
-  Runde. Falsch: freundlicher Hinweis, beliebig viele neue Versuche möglich -
-  keine Bestrafung, kein Abbruch.
+  Während des Vorspielens läuft ein Zeigebalken über den Takt (nach einem
+  etwaigen Einzähler) - zusätzliches visuelles Feedback dazu, wo man sich
+  gerade befindet.
+- "✓ Fertig / Prüfen" vergleicht jede Note/Pause EINZELN mit dem Ziel:
+  richtig platzierte bleiben stehen (grüner Rahmen), falsche fliegen animiert
+  aus dem Raster - man baut nur den Rest weiter, statt neu anzufangen. Bei
+  Pausen zählt nur die Gesamtlänge, nicht die genaue Aufteilung (z.B. zwei
+  Achtelpausen statt einer Viertelpause sind auch richtig); klingende Noten
+  müssen exakt stimmen. Nach jedem Fehlversuch wird der Rhythmus automatisch
+  (inkl. Einzähler) noch einmal vorgespielt. Punkte gibt es als kurzes,
+  animiertes Overlay statt einer langen Text-Erklärung. Nach 5 Fehlversuchen
+  in einer Runde wird die Lösung automatisch angezeigt und vorgespielt, damit
+  niemand frustriert hängen bleibt (diese Runde zählt dann nicht als gelöst).
 - Nach 10 richtig gelösten Runden ist das Level geschafft, und es geht
   zurück zur Level-Übersicht.
 
@@ -72,8 +81,13 @@ eine echte, unbestrafte Übungsoption für Kinder, die mehr Zeit brauchen.
   durchzuhalten.
 - **Sound-Design**: "richtig" = kurzes, aufsteigendes Dur-Arpeggio; "falsch" =
   ein einzelner, weicher, tiefer Ton statt eines harten Fehler-Buzzers.
-- **Optik**: gleiche visuelle Sprache wie der Rhythmus-Generator (Farben,
-  Kartenform, Schrift) für Wiedererkennung, bewusst ohne Maskottchen.
+- **Optik**: eigene, bewusst verspielt-kindgerechte Gestaltung (Farbverläufe,
+  runde Formen, Schriftart "Baloo 2", bunte Level-Karten, Sterne statt
+  Punkten für den Rundenfortschritt) - anders als beim eher schlichten
+  Rhythmus-Generator, da die Zielgruppe hier aktiv zum Spielen motiviert
+  werden soll. Drag & Drop, Notenwerte-Icons und Grundlayout bleiben trotzdem
+  eng am Rhythmus-Generator angelehnt, damit sich beide Apps für Kinder
+  vertraut anfühlen.
 
 ## Lokal starten
 
