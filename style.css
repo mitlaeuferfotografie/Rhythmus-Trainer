@@ -1,18 +1,24 @@
 :root {
-  --ink: #3a2e5c;
-  --paper: #ffffff;
-  --paper-alt: #f6f1ff;
-  --line: #dccdf5;
-  --accent: #7c4fe0;
-  --accent-dark: #5f36b8;
-  --accent-2: #ff8a5b;
-  --ok: #2fb37c;
-  --ok-bg: #e3f9ee;
-  --warn: #ff5d6c;
-  --warn-bg: #ffe7ea;
-  --pending: #ffab30;
-  --pending-bg: #fff2dd;
-  --star: #ffc93c;
+  --bg-1: #1e293b;
+  --bg-2: #0f172a;
+  --bg-3: #020617;
+  --ink: #f1f5f9;
+  --ink-soft: #94a3b8;
+  --paper: #1e293b;
+  --paper-alt: #0f172a;
+  --line: #334155;
+  --border-strong: #475569;
+  --accent: #f59e0b;
+  --accent-light: #fbbf24;
+  --accent-dark: #b45309;
+  --accent-2: #38bdf8;
+  --ok: #10b981;
+  --ok-bg: rgba(16, 185, 129, 0.16);
+  --warn: #fb7185;
+  --warn-bg: rgba(244, 63, 94, 0.16);
+  --pending: #f59e0b;
+  --pending-bg: rgba(245, 158, 11, 0.16);
+  --star: #fbbf24;
   font-size: 20px;
 }
 
@@ -22,18 +28,31 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: linear-gradient(160deg, #fff8ec 0%, #f1ecff 55%, #eaf6ff 100%);
+  background: radial-gradient(ellipse at top, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%);
   color: var(--ink);
-  font-family: "Segoe UI", Verdana, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-user-select: none;
   user-select: none;
 }
 
 h1, h2, h3 { margin: 0; }
 
-h1, .measure-title, .listen-btn, .check-btn, .level-card-title, .level-card-number,
-.tempo-btn, .count-in-number, .points-popup-value, .feedback, .round-dot {
-  font-family: "Baloo 2", "Segoe UI", Verdana, Arial, sans-serif;
+h1, .measure-title, .listen-btn, .check-btn, .level-card-title,
+.tempo-btn, .feedback {
+  font-weight: 800;
+}
+
+.level-card-number, .count-in-number, .points-popup-value {
+  font-family: ui-monospace, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+}
+
+/* Die Noten-/Pausen-SVGs (Palette, platzierte Noten, Level-Kacheln) sind
+   fest dunkel gefüllt (früher: dunkel auf hellen Karten). Auf den jetzt
+   dunklen Karten per Filter invertiert statt die Icons selbst anzufassen -
+   bleibt reine Optik, keine Inhalts-/Logikänderung. */
+.note-card .icon svg, .placed-note .icon svg, .insert-preview .icon svg,
+.eighth-half .icon svg, .level-card-icon svg {
+  filter: invert(1) brightness(1.9);
 }
 
 /* ---------- Toolbar ---------- */
@@ -43,18 +62,20 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title, .level-card-numb
   align-items: center;
   gap: 16px;
   padding: 12px 24px;
-  background: linear-gradient(120deg, var(--accent) 0%, var(--accent-dark) 100%);
-  color: var(--paper);
+  background: var(--bg-3);
+  color: var(--ink);
   position: sticky;
   top: 0;
   z-index: 20;
   flex-wrap: wrap;
-  box-shadow: 0 4px 14px rgba(95, 54, 184, 0.25);
+  border-bottom: 4px solid var(--line);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
 }
 
 .toolbar h1 {
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 800;
+  color: var(--accent-light);
   white-space: nowrap;
 }
 
@@ -70,36 +91,37 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title, .level-card-numb
 
 .btn {
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 700;
   padding: 10px 18px;
-  border: none;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.2);
-  color: var(--paper);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--accent-light);
   cursor: pointer;
   min-height: 44px;
   transition: transform 0.12s ease, background 0.15s;
 }
-.btn:hover { background: rgba(255, 255, 255, 0.32); }
+.btn:hover { background: var(--border-strong); }
 .btn:active { transform: scale(0.96); }
 
-.btn-secondary { background: rgba(255, 255, 255, 0.2); }
+.btn-secondary { background: var(--paper); }
 
-/* Im Einstellungen-Flyout sitzt der Knopf auf hellem Grund statt auf dem
-   dunklen Toolbar-Verlauf - dort braucht er eigene, dunklere Farben. */
+/* Im Einstellungen-Flyout sitzt der Knopf auf dunklem Kartengrund statt auf
+   der Toolbar - dort etwas kräftigerer Amber-Akzent. */
 .bottom-bar .btn-secondary,
 .settings-panel .btn-secondary {
-  background: #ece4fb;
-  color: var(--accent-dark);
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--accent-light);
+  border-color: rgba(245, 158, 11, 0.35);
 }
 .bottom-bar .btn-secondary:hover,
-.settings-panel .btn-secondary:hover { background: #ddccf7; }
+.settings-panel .btn-secondary:hover { background: rgba(245, 158, 11, 0.26); }
 
 /* ---------- Level-Auswahl ---------- */
 
 .level-select-hint {
   text-align: center;
-  color: #6b5f8a;
+  color: var(--ink-soft);
   font-weight: 600;
   margin: 22px 0 4px;
 }
@@ -122,23 +144,24 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title, .level-card-numb
   gap: 8px;
   padding: 18px 20px;
   background: var(--paper);
-  border: none;
+  color: var(--ink);
+  border: 2px solid var(--line);
   border-top: 6px solid var(--card-accent);
   border-radius: 20px;
-  box-shadow: 0 6px 16px rgba(95, 54, 184, 0.12);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
   cursor: pointer;
   text-align: left;
   font-family: inherit;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.level-card:nth-child(1) { --card-accent: #7c4fe0; }
-.level-card:nth-child(2) { --card-accent: #ff8a5b; }
-.level-card:nth-child(3) { --card-accent: #2fb3b3; }
-.level-card:nth-child(4) { --card-accent: #ff5d9e; }
-.level-card:nth-child(5) { --card-accent: #4f9df5; }
-.level-card:nth-child(6) { --card-accent: #2fb37c; }
+.level-card:nth-child(1) { --card-accent: #f59e0b; }
+.level-card:nth-child(2) { --card-accent: #38bdf8; }
+.level-card:nth-child(3) { --card-accent: #2dd4bf; }
+.level-card:nth-child(4) { --card-accent: #fb7185; }
+.level-card:nth-child(5) { --card-accent: #a78bfa; }
+.level-card:nth-child(6) { --card-accent: #34d399; }
 
-.level-card:hover { transform: translateY(-4px); box-shadow: 0 12px 22px rgba(95, 54, 184, 0.2); }
+.level-card:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(0, 0, 0, 0.6); }
 .level-card:active { transform: translateY(-1px) scale(0.99); }
 .level-card.is-done { background: var(--ok-bg); }
 
@@ -180,7 +203,7 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title, .level-card-numb
 .level-card-meter {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #8a7db0;
+  color: var(--ink-soft);
 }
 
 /* ---------- Fortschritt im Level (Sterne-Reihe) ---------- */
@@ -206,7 +229,7 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title, .level-card-numb
 
 .round-dot.is-done {
   color: var(--star);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* ---------- Ziel-Rhythmus anhören ---------- */
@@ -221,13 +244,13 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title, .level-card-numb
 
 .listen-btn {
   padding: 18px 36px;
-  border: none;
+  border: 2px solid var(--accent-dark);
   border-radius: 999px;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--paper);
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-  box-shadow: 0 10px 22px rgba(95, 54, 184, 0.35);
+  color: var(--bg-3);
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
+  box-shadow: 0 10px 22px rgba(245, 158, 11, 0.4);
   cursor: pointer;
   min-height: 60px;
   transition: transform 0.12s ease;
@@ -244,7 +267,7 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title, .level-card-numb
 .listen-hint {
   margin: 0;
   font-size: 0.8rem;
-  color: #8a7db0;
+  color: var(--ink-soft);
   text-align: center;
 }
 
@@ -269,8 +292,8 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title, .level-card-numb
 .tempo-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
 .tempo-btn.is-selected {
   border-color: var(--accent-dark);
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
+  color: var(--bg-3);
 }
 
 /* Einzähler-Overlay: schwebt transparent über der ganzen Takt-Karte, solange
@@ -293,14 +316,14 @@ h1, .measure-title, .listen-btn, .check-btn, .level-card-title, .level-card-numb
 .count-in-number {
   font-size: 6rem;
   font-weight: 700;
-  color: var(--accent);
-  opacity: 0.88;
+  color: var(--accent-light);
+  opacity: 0.9;
   line-height: 1;
 }
 .count-in-number.bounce { animation: countInBounce 0.25s ease-out; }
 @keyframes countInBounce {
   0% { transform: scale(1.4); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.88; }
+  100% { transform: scale(1); opacity: 0.9; }
 }
 
 .count-in-dots { display: flex; gap: 8px; }
@@ -337,7 +360,7 @@ main {
   border-radius: 20px;
   padding: 12px 16px 16px;
   overflow: hidden;
-  box-shadow: 0 6px 16px rgba(95, 54, 184, 0.08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
   transition: border-color 0.15s, background 0.15s;
 }
 
@@ -361,7 +384,7 @@ main {
 .measure-title {
   font-weight: 700;
   font-size: 1.05rem;
-  color: var(--accent-dark);
+  color: var(--accent-light);
 }
 
 .measure-clear {
@@ -375,7 +398,7 @@ main {
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #6b5f8a;
+  color: var(--ink-soft);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -415,7 +438,7 @@ main {
   margin-left: -2px;
   background: var(--accent-2);
   border-radius: 2px;
-  box-shadow: 0 0 10px rgba(255, 138, 91, 0.7);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
   pointer-events: none;
   z-index: 6;
   display: none;
@@ -424,7 +447,7 @@ main {
 
 .slot-track.drag-over {
   border-color: var(--accent);
-  background-color: #f1ecff;
+  background-color: rgba(245, 158, 11, 0.12);
 }
 
 .measure-warning {
@@ -439,12 +462,12 @@ main {
 .measure-warning[hidden] { display: none; }
 .measure-warning span {
   background: var(--warn);
-  color: white;
+  color: var(--bg-3);
   padding: 8px 18px;
   border-radius: 999px;
   font-weight: 700;
   font-size: 1rem;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
 }
 
 .beat-labels {
@@ -452,17 +475,18 @@ main {
   margin-top: 4px;
   border: 2px solid transparent;
   font-size: 0.75rem;
-  color: #9a8ec2;
+  color: var(--ink-soft);
   text-align: center;
 }
-.beat-labels span:nth-child(odd) { font-weight: 700; color: #6b5f8a; }
+.beat-labels span:nth-child(odd) { font-weight: 700; color: var(--ink); }
 
 .placed-note {
   position: relative;
   display: flex;
   align-items: center;
   background: var(--paper);
-  border: 2px solid var(--ink);
+  border: 3px solid var(--border-strong);
+  color: var(--ink);
   border-radius: 10px;
   cursor: grab;
   touch-action: none;
@@ -495,7 +519,7 @@ main {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  border: 2px solid var(--ink);
+  border: 2px solid var(--border-strong);
   background: var(--paper);
   color: var(--ink);
   font-size: 0.9rem;
@@ -506,13 +530,13 @@ main {
   justify-content: center;
   z-index: 2;
 }
-.placed-note .delete-btn:hover { background: var(--warn); color: white; border-color: var(--warn); }
+.placed-note .delete-btn:hover { background: var(--warn); color: var(--bg-3); border-color: var(--warn); }
 
 .placed-note-pair {
   position: relative;
   display: flex;
   background: var(--paper);
-  border: 2px solid var(--ink);
+  border: 3px solid var(--border-strong);
   border-radius: 10px;
   align-self: stretch;
 }
@@ -541,7 +565,7 @@ main {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  border: 2px solid var(--ink);
+  border: 2px solid var(--border-strong);
   background: var(--paper);
   color: var(--ink);
   font-size: 0.9rem;
@@ -552,7 +576,7 @@ main {
   justify-content: center;
   z-index: 2;
 }
-.eighth-half .delete-btn:hover { background: var(--warn); color: white; border-color: var(--warn); }
+.eighth-half .delete-btn:hover { background: var(--warn); color: var(--bg-3); border-color: var(--warn); }
 .eighth-half .delete-btn-left { right: auto; left: -10px; }
 
 .beam-bar {
@@ -571,11 +595,11 @@ main {
   bottom: 0;
   border: 2px dashed var(--accent);
   border-radius: 10px;
-  background: rgba(124, 79, 224, 0.1);
+  background: rgba(245, 158, 11, 0.14);
   opacity: 0.85;
   z-index: 3;
 }
-.insert-preview .icon { opacity: 0.6; }
+.insert-preview .icon { opacity: 0.7; }
 
 .measure.preview-overfull {
   border-color: var(--warn);
@@ -583,7 +607,7 @@ main {
 }
 .measure.preview-overfull .insert-preview {
   border-color: var(--warn);
-  background: rgba(255, 93, 108, 0.12);
+  background: rgba(251, 113, 133, 0.16);
 }
 .measure.preview-overfull .slot-track {
   -webkit-mask-image: linear-gradient(to right, black 0, black 92%, transparent 100%);
@@ -599,10 +623,10 @@ main {
    bevor sie aus dem Zustand entfernt werden (siehe onCheck in script.js). */
 .placed-note.note-correct {
   border-color: var(--ok);
-  box-shadow: 0 0 0 3px rgba(47, 179, 124, 0.25);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
 }
 .eighth-half.note-correct {
-  box-shadow: inset 0 0 0 3px var(--ok), 0 0 0 3px rgba(47, 179, 124, 0.25);
+  box-shadow: inset 0 0 0 3px var(--ok), 0 0 0 3px rgba(16, 185, 129, 0.3);
   border-radius: 6px;
 }
 
@@ -617,15 +641,15 @@ main {
 }
 
 /* Nach 5 Fehlversuchen automatisch eingeblendete Lösungs-Noten - bewusst
-   anders markiert als selbst richtig gebaute (gestrichelt/blau statt grün),
+   anders markiert als selbst richtig gebaute (gestrichelt/amber statt grün),
    damit klar bleibt, was das Kind selbst geschafft hat. */
 .placed-note.note-revealed {
   border-style: dashed;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(124, 79, 224, 0.18);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
 }
 .eighth-half.note-revealed {
-  box-shadow: inset 0 0 0 3px var(--accent), 0 0 0 3px rgba(124, 79, 224, 0.18);
+  box-shadow: inset 0 0 0 3px var(--accent), 0 0 0 3px rgba(245, 158, 11, 0.25);
   border-radius: 6px;
 }
 
@@ -658,7 +682,7 @@ main {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #9a8ec2;
+  color: var(--ink-soft);
 }
 
 .palette-cards {
@@ -683,11 +707,12 @@ main {
   gap: 8px;
   padding: 9px 14px;
   background: var(--paper);
-  border: 2px solid var(--ink);
+  color: var(--ink);
+  border: 3px solid var(--border-strong);
   border-radius: 12px;
   cursor: grab;
   touch-action: none;
-  box-shadow: 0 3px 8px rgba(95, 54, 184, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
   transition: transform 0.12s ease;
 }
 .note-card:active { transform: scale(0.96); cursor: grabbing; }
@@ -710,7 +735,7 @@ main {
 }
 .note-card .label .beats {
   font-size: 0.7rem;
-  color: #8a7db0;
+  color: var(--ink-soft);
 }
 
 /* ---------- Feedback-Banner ---------- */
@@ -727,12 +752,12 @@ main {
 .feedback[hidden] { display: none; }
 .feedback-correct {
   background: var(--ok-bg);
-  color: var(--ok);
+  color: #6ee7b7;
   border: 2px solid var(--ok);
 }
 .feedback-wrong {
   background: var(--pending-bg);
-  color: #a06400;
+  color: var(--accent-light);
   border: 2px solid var(--pending);
 }
 
@@ -751,13 +776,13 @@ main {
 
 .check-btn {
   padding: 16px 36px;
-  border: none;
+  border: 2px solid var(--ok);
   border-radius: 999px;
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--paper);
-  background: linear-gradient(135deg, #35c48c 0%, var(--ok) 100%);
-  box-shadow: 0 10px 22px rgba(47, 179, 124, 0.4);
+  color: #ffffff;
+  background: linear-gradient(135deg, #34d399 0%, var(--ok) 100%);
+  box-shadow: 0 10px 22px rgba(16, 185, 129, 0.45);
   cursor: pointer;
   min-height: 56px;
   min-width: 220px;
@@ -769,7 +794,7 @@ main {
 
 .bottom-bar .btn-secondary {
   border-radius: 999px;
-  box-shadow: 0 10px 22px rgba(95, 54, 184, 0.2);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.4);
 }
 
 /* ---------- Einstellungen-Flyout ---------- */
@@ -781,8 +806,9 @@ main {
   bottom: 100px;
   background: var(--paper);
   color: var(--ink);
+  border: 2px solid var(--line);
   border-radius: 20px;
-  box-shadow: 0 14px 30px rgba(95, 54, 184, 0.25);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
   padding: 18px 22px;
   display: flex;
   flex-wrap: wrap;
@@ -845,10 +871,11 @@ main {
   align-items: center;
   gap: 10px;
   padding: 18px 32px;
-  background: linear-gradient(135deg, var(--star) 0%, var(--accent-2) 100%);
-  color: #4a2e00;
+  background: linear-gradient(135deg, var(--star) 0%, var(--accent) 100%);
+  color: var(--bg-3);
+  border: 2px solid var(--accent-dark);
   border-radius: 999px;
-  box-shadow: 0 16px 32px rgba(255, 138, 91, 0.4);
+  box-shadow: 0 18px 36px rgba(245, 158, 11, 0.5);
   font-size: 2rem;
   font-weight: 800;
   pointer-events: none;
