@@ -1039,28 +1039,63 @@ function startRound() {
   playTargetRhythm();
 }
 
-function checkAttempt(target, attempt) {
-  if (attempt.length !== target.length) return false;
-  const sortedTarget = target.slice().sort((a, b) => a.startUnit - b.startUnit);
-  const sortedAttempt = attempt.slice().sort((a, b) => a.startUnit - b.startUnit);
-  return sortedTarget.every((t, i) => t.typeId === sortedAttempt[i].typeId && t.startUnit === sortedAttempt[i].startUnit);
+// Baut ein Achtel-"unit"-Profil des Ziel-Rhythmus: jede Einheit trägt
+// entweder die Kennung der klingenden Note, die sie überdeckt ("typeId@
+// startUnit" - Notenwert UND Position müssen exakt stimmen), oder 'rest'.
+// WICHTIG: Für Pausen wird bewusst NICHT zwischen Viertelpause/Achtelpause/…
+// unterschieden, nur ob überhaupt Stille erwartet wird - dadurch ist es
+// egal, ob eine Pausenlänge als eine große oder mehrere kleine Pausen
+// notiert wird (z.B. 2 Achtelpausen statt 1 Viertelpause), solange die
+// GESAMTE stille Fläche am Ende abgedeckt ist. Bei klingenden Noten bleibt
+// es exakt, weil ein anderes Aufteilen dort den tatsächlichen Klang
+// verändern würde (neuer Anschlag statt einer gehaltenen Note).
+function buildTargetProfile(target, capacity) {
+  const profile = new Array(capacity).fill('rest'); // der Ziel-Rhythmus ist immer lückenlos (siehe generateTargetRhythm)
+  target.forEach((note) => {
+    const type = noteType(note.typeId);
+    if (type.isRest) return;
+    for (let u = note.startUnit; u < note.startUnit + type.units; u++) profile[u] = `${note.typeId}@${note.startUnit}`;
+  });
+  return profile;
 }
 
-// Vergleicht jede Note EINZELN mit der Zielposition (statt nur "ganz richtig
-// oder ganz falsch") - Noten, die an ihrer Stelle exakt zum Ziel-Rhythmus
-// passen, gelten als "richtig" (bleiben stehen), alles andere (falscher
-// Notenwert an dieser Stelle, oder eine Note, wo im Ziel gar keine liegt)
-// gilt als "falsch" (wird entfernt). Da im Raster keine zwei Noten dieselbe
-// startUnit belegen können (siehe pushPastOverlaps), reicht ein Vergleich
-// über die Zählzeit, an der eine Note beginnt.
+// Prüft, ob EINE Note/Pause des Versuchs an ihrer Stelle zum Ziel passt:
+// bei einer Pause reicht es, dass jede ihrer Einheiten im Ziel-Profil
+// ebenfalls "rest" ist (unabhängig von der genauen Pausenlänge dort); bei
+// einer klingenden Note müssen alle ihre Einheiten exakt zu IHRER EIGENEN
+// Kennung im Profil passen (Notenwert und Position identisch).
+function noteMatchesProfile(note, profile, capacity) {
+  const type = noteType(note.typeId);
+  const ownTag = `${note.typeId}@${note.startUnit}`;
+  for (let u = note.startUnit; u < note.startUnit + type.units; u++) {
+    if (u >= capacity) return false;
+    const wanted = profile[u];
+    if (type.isRest ? wanted !== 'rest' : wanted !== ownTag) return false;
+  }
+  return true;
+}
+
+function checkAttempt(target, attempt) {
+  const capacity = TIME_SIGNATURES[currentLevel().timeSignature].units;
+  const profile = buildTargetProfile(target, capacity);
+  // Muss den Takt komplett (lückenlos) ausfüllen - sonst könnten unausgefüllte
+  // Lücken, die zufällig auf eine Pausen-Stelle des Ziels fallen, fälschlich
+  // als "schon richtig" durchgehen, obwohl dort gar keine Pause liegt.
+  const attemptUnits = attempt.reduce((sum, n) => sum + noteType(n.typeId).units, 0);
+  if (attemptUnits !== capacity) return false;
+  return attempt.every((note) => noteMatchesProfile(note, profile, capacity));
+}
+
+// Vergleicht jede Note/Pause EINZELN mit dem Ziel-Profil (statt nur "ganz
+// richtig oder ganz falsch") - was an seiner Stelle passt, gilt als
+// "richtig" (bleibt stehen), der Rest gilt als "falsch" (wird entfernt).
 function partitionAttempt(target, attempt) {
-  const targetByUnit = new Map(target.map((n) => [n.startUnit, n]));
+  const capacity = TIME_SIGNATURES[currentLevel().timeSignature].units;
+  const profile = buildTargetProfile(target, capacity);
   const correctNotes = [];
   const wrongNotes = [];
   attempt.forEach((note) => {
-    const match = targetByUnit.get(note.startUnit);
-    if (match && match.typeId === note.typeId) correctNotes.push(note);
-    else wrongNotes.push(note);
+    (noteMatchesProfile(note, profile, capacity) ? correctNotes : wrongNotes).push(note);
   });
   return { correctNotes, wrongNotes };
 }
