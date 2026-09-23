@@ -4,4 +4,5 @@
   inhaltlich/stilistisch orientiert es sich an dessen Notenwerten und
   Bedienkonzept (siehe README.md), technisch aber unabhängig.
 - Wenn Funktionen der App geändert, hinzugefügt oder entfernt werden, halte
-  die Level-/Spielprinzip-Beschreibung in README.md aktuell.
+  die Level-/Spielprinzip-Beschreibung in README.md UND in
+  Uebergabe_Rhythmus-Trainer.md (Cowork-Übergabe) aktuell.

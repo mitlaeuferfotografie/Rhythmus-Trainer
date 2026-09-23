@@ -1,4 +1,4 @@
-# Rhythmus-Rätsel
+# Rhythmus-Trainer
 
 Interaktives Hör-Übungsspiel für die digitale Tafel/Tablets: Die App spielt
 einen Rhythmus vor, das Kind baut ihn per Drag & Drop nach und bekommt sofort
@@ -6,7 +6,7 @@ Rückmeldung, ob es stimmt.
 
 Eigenständiges Gegenstück zum [Rhythmus-Generator](../Rhythmus-Generator-App):
 Der Generator ist ein offenes, freies Werkzeug zum Bauen eigener Rhythmen
-ohne Bewertung. Das Rhythmus-Rätsel trainiert gezielt die andere Seite -
+ohne Bewertung. Der Rhythmus-Trainer trainiert gezielt die andere Seite -
 genaues Hinhören und das Gehörte korrekt in Notenwerte übersetzen - mit
 Punkten und Levels als Motivation.
 

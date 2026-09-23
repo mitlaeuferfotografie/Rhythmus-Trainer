@@ -36,5 +36,5 @@ http
     });
   })
   .listen(PORT, () => {
-    console.log(`Serving Rhythmus-Rätsel at http://localhost:${PORT}`);
+    console.log(`Serving Rhythmus-Trainer at http://localhost:${PORT}`);
   });

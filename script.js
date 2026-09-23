@@ -129,7 +129,7 @@ const currentTempo = () => TEMPO_OPTIONS.find((t) => t.id === game.tempoId) || T
    (kein Nutzerkonto/keine Cloud, siehe README.md).
    ============================================================ */
 
-const STORAGE_KEY = 'rhythmusRaetselFortschritt';
+const STORAGE_KEY = 'rhythmusTrainerFortschritt';
 
 // Das Tempo wird bewusst NICHT gespeichert: Standard ist und bleibt immer
 // "Mittel", jedes Mal wenn ein Level (neu) gestartet wird - unabhängig davon,
