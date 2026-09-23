@@ -834,6 +834,20 @@ main {
   flex: 0 0 auto;
 }
 
+/* Eigene, volle Zeile unten im Einstellungen-Flyout statt zwischen den
+   Reglern zu verschwinden - klar als eigener, dauerhaft erreichbarer
+   Menüpunkt erkennbar (Zwei-Klick-Regel: Einstellungen -> Impressum). */
+.settings-legal-link {
+  flex: 1 1 100%;
+  text-align: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: #8a7db0;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.settings-legal-link:hover { text-decoration: underline; }
+
 /* ---------- Punkte-Overlay nach "Fertig / Prüfen" ---------- */
 
 .points-popup {
