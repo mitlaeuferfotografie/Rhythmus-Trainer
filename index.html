@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rhythmus-Rätsel</title>
+<!-- ?v=N auf style.css/script.js bei jedem inhaltlichen Deploy erhöhen (siehe
+     Rhythmus-Generator): GitHub Pages cacht beide Dateien 10 Minuten. -->
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+
+<header class="toolbar">
+  <h1>Rhythmus-Rätsel</h1>
+  <div class="toolbar-progress">
+    <span id="levelLabel">Level 1 von 6</span>
+    <span id="pointsLabel">⭐ 0 Punkte</span>
+  </div>
+  <button id="settingsToggle" class="btn btn-secondary" aria-expanded="false" aria-controls="settingsPanel">
+    ⚙
+  </button>
+</header>
+
+<main>
+  <section class="round-progress" aria-label="Fortschritt in diesem Level">
+    <div id="roundDots" class="round-dots"><!-- populated by script.js --></div>
+  </section>
+
+  <section class="listen-area" aria-label="Ziel-Rhythmus anhören">
+    <button id="listenBtn" class="listen-btn">🔊 Rhythmus anhören</button>
+    <p class="listen-hint">So oft anhören, wie du willst - das zählt nicht negativ.</p>
+  </section>
+
+  <section class="score" aria-label="Rhythmus nachbauen">
+    <div id="measures" class="measures"><!-- populated by script.js --></div>
+  </section>
+
+  <section class="palette" aria-label="Notenwerte-Palette">
+    <div class="palette-cards" id="paletteCards"><!-- populated by script.js --></div>
+  </section>
+
+  <div id="feedback" class="feedback" hidden></div>
+</main>
+
+<div class="bottom-bar">
+  <button id="checkBtn" class="check-btn">✓ Fertig / Prüfen</button>
+</div>
+
+<div id="settingsPanel" class="settings-panel" hidden>
+  <label class="volume-label">
+    <span>Lautstärke: <span id="noteVolumeValue">60</span> %</span>
+    <input type="range" id="noteVolumeSlider" min="0" max="100" value="60">
+  </label>
+  <button id="resetProgressBtn" class="btn btn-secondary reset-btn" type="button">
+    Fortschritt zurücksetzen
+  </button>
+</div>
+
+<div id="dragGhost" class="drag-ghost" hidden></div>
+
+<script src="script.js?v=1"></script>
+</body>
+</html>
