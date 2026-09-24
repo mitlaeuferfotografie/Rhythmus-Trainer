@@ -23,6 +23,18 @@ Ursprüngliche Konzeptnotiz lag in
 - Alle 6 Level, Level-Auswahl, Tempo-Bonus, Metronom/Einzähler,
   Teil-Feedback + Lösungsanzeige nach 5 Fehlversuchen, kindgerechtes
   Design: siehe README.md für die vollständige, aktuelle Funktionsliste.
+- Style-Test (Branch `style-test-tailwind`, noch nicht gepusht): helles
+  Slate/Amber-Look mit royalblauer Toolbar/Buttons statt der ursprünglichen
+  bunten Farbpalette - siehe eigener Screenshot im Projektordner.
+- Nach richtig gelöster Runde wird der Rhythmus jetzt zur Bestätigung noch
+  einmal (ohne Einzähler) abgespielt, bevor es weitergeht (`onCheck` ruft
+  `playTargetRhythm(true)`).
+- Level 6 umgebaut: statt eines 3/4-Takts jetzt ZWEI aufeinanderfolgende
+  4/4-Takte (`measureCount: 2`) - jeder Takt wird unabhängig lückenlos
+  gefüllt (`fillMeasure`), Kapazität/Rendering/Wiedergabe laufen über die
+  neue `currentCapacity()`-Hilfsfunktion (= `ts.units * measureCount`)
+  statt direkt über `TIME_SIGNATURES[...].units`. Der '3/4'-Eintrag in
+  `TIME_SIGNATURES` wurde entfernt, da nichts mehr darauf verweist.
 
 ## Repository / Deployment
 
