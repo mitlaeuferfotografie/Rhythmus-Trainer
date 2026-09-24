@@ -91,13 +91,20 @@ eine echte, unbestrafte Übungsoption für Kinder, die mehr Zeit brauchen.
   durchzuhalten.
 - **Sound-Design**: "richtig" = kurzes, aufsteigendes Dur-Arpeggio; "falsch" =
   ein einzelner, weicher, tiefer Ton statt eines harten Fehler-Buzzers.
-- **Optik**: eigene, bewusst verspielt-kindgerechte Gestaltung (Farbverläufe,
-  runde Formen, Schriftart "Baloo 2", bunte Level-Karten, Sterne statt
-  Punkten für den Rundenfortschritt) - anders als beim eher schlichten
-  Rhythmus-Generator, da die Zielgruppe hier aktiv zum Spielen motiviert
-  werden soll. Drag & Drop, Notenwerte-Icons und Grundlayout bleiben trotzdem
-  eng am Rhythmus-Generator angelehnt, damit sich beide Apps für Kinder
-  vertraut anfühlen.
+- **Optik**: seit dem Redesign vom 2026-09-24 dieselbe helle Slate-/Amber-
+  Palette mit royalblauer Toolbar wie Rhythmus-Generator, Noten-Rätsel und
+  die Musik-Apps-Übersicht (identische `:root`-Variablen, Systemschrift statt
+  der ursprünglichen "Baloo 2") - bewusst NICHT mehr eigenständig gestaltet,
+  damit der Übergang zwischen den Apps nahtlos wirkt. Sterne statt Punkten
+  für den Rundenfortschritt sind das einzige noch app-spezifische Detail.
+  Drag & Drop, Notenwerte-Icons und Grundlayout bleiben eng am
+  Rhythmus-Generator angelehnt, damit sich beide Apps für Kinder vertraut
+  anfühlen.
+- **Header-Icon**: 👂 vor dem Titel (Ohr = Hör-Übung), oben rechts ein
+  Zurück-Link zur Musik-Apps-Übersicht (`.toolbar-home-link`), Impressum
+  als Menüpunkt in den Einstellungen (`.settings-legal-link`) - siehe
+  [Musik-Apps/README.md](../Musik-Apps/README.md) für die verbindlichen
+  Konventionen.
 
 ## Lokal starten
 

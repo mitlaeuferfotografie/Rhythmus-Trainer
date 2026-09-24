@@ -16,16 +16,26 @@ Feedback/Punkte. Eigenständiges Gegenstück zum
 Ursprüngliche Konzeptnotiz lag in
 `C:\Users\BrandschP\Documents\ClaudeArbeitsordner\Musikunterricht\Konzeptnotiz_Rhythmus-Spiel_fuer_Code.md`.
 
-## Stand: 2026-09-23
+## Stand: 2026-09-24
 
 - Vollständig funktionsfähig, lokal mehrfach getestet, auf GitHub Pages
   veröffentlicht (siehe unten).
 - Alle 6 Level, Level-Auswahl, Tempo-Bonus, Metronom/Einzähler,
-  Teil-Feedback + Lösungsanzeige nach 5 Fehlversuchen, kindgerechtes
-  Design: siehe README.md für die vollständige, aktuelle Funktionsliste.
-- Style-Test (Branch `style-test-tailwind`, noch nicht gepusht): helles
-  Slate/Amber-Look mit royalblauer Toolbar/Buttons statt der ursprünglichen
-  bunten Farbpalette - siehe eigener Screenshot im Projektordner.
+  Teil-Feedback + Lösungsanzeige nach 5 Fehlversuchen: siehe README.md für
+  die vollständige, aktuelle Funktionsliste.
+- **Redesign live auf `main`** (der frühere Style-Test-Branch
+  `style-test-tailwind` ist längst gemerged, nicht mehr relevant): helles
+  Slate/Amber-Look mit royalblauer Toolbar statt der ursprünglichen bunten,
+  "Baloo 2"-geprägten Palette - identisch zu Rhythmus-Generator, Noten-Rätsel
+  und der Musik-Apps-Übersicht (gemeinsame `:root`-Variablen in style.css).
+- Oben rechts in der Toolbar ein Zurück-Link zur Musik-Apps-Übersicht
+  (`.toolbar-home-link`, `margin-left: auto`) - bewusst RECHTS, da links
+  bereits der In-App-"Level wählen"-Button sitzt. "Impressum" als eigener
+  Menüpunkt am Ende des Einstellungen-Flyouts (`.settings-legal-link`,
+  verlinkt auf die zentrale Seite im Musik-Apps-Repo).
+- Header-Icon vor dem Titel am 2026-09-24 von 🎵 auf 👂 geändert (Ohr = Hör-
+  Übung) - Teil einer app-übergreifenden Konvention, siehe
+  [Musik-Apps/README.md](../Musik-Apps/README.md).
 - Nach richtig gelöster Runde wird der Rhythmus jetzt zur Bestätigung noch
   einmal (ohne Einzähler) abgespielt, bevor es weitergeht (`onCheck` ruft
   `playTargetRhythm(true)`).
