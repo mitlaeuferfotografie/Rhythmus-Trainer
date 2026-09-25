@@ -36,6 +36,14 @@ Ursprüngliche Konzeptnotiz lag in
 - Header-Icon vor dem Titel am 2026-09-24 von 🎵 auf 👂 geändert (Ohr = Hör-
   Übung) - Teil einer app-übergreifenden Konvention, siehe
   [Musik-Apps/README.md](../Musik-Apps/README.md).
+- **Bugfix 2026-09-25 (aus dem echten Unterricht gemeldet):** Nach einer
+  richtig gelösten Runde blieb "✓ Fertig / Prüfen" aktiv, während die App
+  auf den Rundenwechsel wartet (Bestätigungs-Sound + kurze Pause). Erneutes
+  Klicken in diesem Fenster prüfte denselben, weiterhin richtigen Versuch
+  nochmal - Punkte/Rundenfortschritt wurden pro Klick erneut vergeben,
+  wodurch sich ganze Level durchhämmern ließen, ohne je etwas Neues
+  einzutragen. Fix: `checkBtn.disabled = true` direkt nach einer richtigen
+  Prüfung in `onCheck()`, wieder freigegeben erst in `startRound()`.
 - Nach richtig gelöster Runde wird der Rhythmus jetzt zur Bestätigung noch
   einmal (ohne Einzähler) abgespielt, bevor es weitergeht (`onCheck` ruft
   `playTargetRhythm(true)`).
