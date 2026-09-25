@@ -1117,6 +1117,7 @@ function startRound() {
   game.wrongAttempts = 0;
   game.target = generateFreshTargetRhythm(currentLevel());
   feedbackEl.hidden = true;
+  checkBtn.disabled = false; // Gegenstück zur Sperre in onCheck() nach einer richtig gelösten Runde
   renderProgressHeader();
   renderTempoButtons();
   renderPalette();
@@ -1333,6 +1334,15 @@ function onCheck() {
     }, WRONG_NOTE_REMOVE_MS);
     return;
   }
+
+  // "Prüfen" sofort sperren: game.attempt bleibt bis zum Rundenwechsel
+  // unverändert stehen (nur die Anzeige spielt noch die Bestätigung ab) -
+  // ohne diese Sperre würde ein erneuter Klick in dieser Wartezeit denselben,
+  // weiterhin richtigen Versuch nochmal als neue Runde werten (Punkte +
+  // Rundenfortschritt mehrfach für ein und denselben gebauten Rhythmus,
+  // per schnellem Mehrfachklick ausnutzbar - in echten Klassen beobachtet).
+  // Wird in startRound() für die jeweils nächste Runde wieder freigegeben.
+  checkBtn.disabled = true;
 
   const tempo = currentTempo();
   const firstTryBonus = game.attemptCount === 1 ? FIRST_TRY_BONUS : 0;
