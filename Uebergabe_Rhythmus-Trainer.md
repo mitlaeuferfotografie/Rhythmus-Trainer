@@ -93,12 +93,20 @@ Ursprüngliche Konzeptnotiz lag in
   Konzeptnotiz stehen in README.md unter "Bewusste Entscheidungen..." -
   dort nachschauen statt Annahmen zu treffen, bevor neue Level-/Punkte-
   Mechaniken geändert werden.
-- Visuelles Design ist bewusst eigenständig verspielt-kindgerecht (nicht
-  identisch zum schlichteren Rhythmus-Generator) - Farbpalette/Schrift
-  ("Baloo 2") in style.css als `:root`-Variablen, nicht hart codiert.
+- Visuelles Design ist seit dem Redesign 2026-09-24 NICHT mehr eigenständig,
+  sondern identisch zu Rhythmus-Generator/Noten-Rätsel/Musik-Apps (gleiche
+  `:root`-Variablen in style.css, kein "Baloo 2" mehr).
 
 ## Offene / mögliche nächste Schritte (nicht beauftragt, nur vorgemerkt)
 
+- **Ungeklärter Melde-Fall (2026-09-25):** Peter berichtete aus dem echten
+  Unterricht, dass einmal eine korrekt gebaute Note fälschlich als falsch
+  bewertet wurde. Details (Level/Notenwert/Position) waren nachträglich
+  nicht mehr rekonstruierbar - Code-Durchsicht der Prüf-Logik
+  (`checkAttempt`/`noteMatchesProfile`/`buildTargetProfile`) ergab keinen
+  offensichtlichen Fehler. Falls es erneut auftritt: möglichst genau
+  Level, verwendete Notenwerte/Pausen und die Position im Takt notieren
+  (im Idealfall Screenshot), bevor an dieser Logik etwas geändert wird.
 - Kein QR-Code in den Einstellungen (anders als beim Rhythmus-Generator) -
   könnte bei Bedarf ergänzt werden, sobald die Live-URL feststeht.
 - 6/8-Takt ist wie beim Rhythmus-Generator bewusst noch nicht enthalten.
